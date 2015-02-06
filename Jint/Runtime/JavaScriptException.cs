@@ -46,14 +46,8 @@ namespace Jint.Runtime
 				message = oi.Get("message").AsString();
 			}
 
-			if (location != null)
-			{
-				if (string.IsNullOrEmpty(message))
-					return string.Format("Unknown error. Line {0}. Column: {1}.", location.Start.Line, location.Start.Column);
-
-				message += string.Format(". Line {0}. Column: {1}.", location.Start.Line, location.Start.Column);
-				return message;
-			}
+			if (string.IsNullOrEmpty(message))
+				return "Unknown error.";
 
 			return message;
 		}
