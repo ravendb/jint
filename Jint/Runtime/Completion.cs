@@ -1,4 +1,5 @@
 ﻿using Jint.Native;
+using Jint.Parser;
 
 namespace Jint.Runtime
 {
@@ -20,9 +21,18 @@ namespace Jint.Runtime
             Identifier = identifier;
         }
 
+		public Completion(string type, JsValue? value, string identifier, Location location)
+		{
+			Type = type;
+			Value = value;
+			Identifier = identifier;
+			Location = location;
+		}
+
         public string Type { get; private set; }
         public JsValue Value { get; private set; }
         public string Identifier { get; private set; }
+		public Location Location { get; private set; }
 
         public JsValue GetValueOrDefault()
         {
