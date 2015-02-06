@@ -17,7 +17,9 @@ var b = a.user.name;
 
 			var engine = new Engine();
 			var e = Assert.Throws<JavaScriptException>(() => engine.Execute(script));
-			Assert.Equal("user is undefined. Line 4. Column: 8.", e.Message);
+			Assert.Equal("user is undefined", e.Message);
+			Assert.Equal(4, e.Location.Start.Line);
+			Assert.Equal(8, e.Location.Start.Column);
 		}
 
 		[Fact]
@@ -29,7 +31,9 @@ test();
 
 			var engine = new Engine();
 			var e = Assert.Throws<JavaScriptException>(() => engine.Execute(script));
-			Assert.Equal("test is not defined. Line 2. Column: 0.", e.Message);
+			Assert.Equal("test is not defined", e.Message);
+			Assert.Equal(2, e.Location.Start.Line);
+			Assert.Equal(0, e.Location.Start.Column);
 		}
 	}
 }
