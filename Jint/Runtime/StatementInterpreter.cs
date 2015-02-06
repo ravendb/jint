@@ -331,7 +331,7 @@ namespace Jint.Runtime
             }
             catch (JavaScriptException e)
             {
-                c = new Completion(Completion.Throw, e.Error, null);
+                c = new Completion(Completion.Throw, e.Error, null, withStatement.Location);
             }
             finally
             {
@@ -409,11 +409,13 @@ namespace Jint.Runtime
         {
             var c = new Completion(Completion.Normal, null, null);
             Completion sl = c;
+	        Statement s = null;
 
             try
             {
                 foreach (var statement in statementList)
                 {
+	                s = statement;
                     c = ExecuteStatement(statement);
                     if (c.Type != Completion.Normal)
                     {
@@ -425,7 +427,7 @@ namespace Jint.Runtime
             }
             catch(JavaScriptException v)
             {
-                return new Completion(Completion.Throw, v.Error, null);
+				return new Completion(Completion.Throw, v.Error, null, v.Location ?? s.Location);
             }
 
             return new Completion(c.Type, c.GetValueOrDefault(), c.Identifier);
@@ -439,7 +441,7 @@ namespace Jint.Runtime
         public Completion ExecuteThrowStatement(ThrowStatement throwStatement)
         {
             var exprRef = _engine.EvaluateExpression(throwStatement.Argument);
-            return new Completion(Completion.Throw, _engine.GetValue(exprRef), null);
+            return new Completion(Completion.Throw, _engine.GetValue(exprRef), null, throwStatement.Location);
         }
 
         /// <summary>

@@ -746,7 +746,6 @@ namespace Jint.Runtime
             var baseValue = _engine.GetValue(baseReference);
             Expression expression = memberExpression.Property;
 
-            
             if (!memberExpression.Computed) // index accessor ?
             {
                 expression = new Literal { Type = SyntaxNodes.Literal, Value = memberExpression.Property.As<Identifier>().Name };
@@ -754,7 +753,7 @@ namespace Jint.Runtime
 
             var propertyNameReference = EvaluateExpression(expression);
             var propertyNameValue = _engine.GetValue(propertyNameReference);
-            TypeConverter.CheckObjectCoercible(_engine, baseValue);
+            TypeConverter.CheckObjectCoercible(_engine, baseValue, memberExpression, baseReference);
             var propertyNameString = TypeConverter.ToString(propertyNameValue);
 
             return new Reference(baseValue, propertyNameString, StrictModeScope.IsStrictModeCode);

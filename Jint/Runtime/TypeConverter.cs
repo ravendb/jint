@@ -6,6 +6,8 @@ using System.Reflection;
 using Jint.Native;
 using Jint.Native.Number;
 using Jint.Native.Object;
+using Jint.Parser.Ast;
+using Jint.Runtime.References;
 
 namespace Jint.Runtime
 {
@@ -338,12 +340,25 @@ namespace Jint.Runtime
             return value.Type;
         }
 
+		public static void CheckObjectCoercible(Engine engine, JsValue o, MemberExpression expression, object baseReference)
+		{
+			if (o != Undefined.Instance && o != Null.Instance)
+				return;
+
+			var message = string.Empty;
+			var reference = baseReference as Reference;
+			if (reference != null)
+				message = string.Format("{0} is {1}", reference.GetReferencedName(), o);
+
+			throw new JavaScriptException(engine.TypeError, message, expression.Location);
+		}
+
         public static void CheckObjectCoercible(Engine engine, JsValue o)
         {
-            if (o == Undefined.Instance || o == Null.Instance)
-            {
-                throw new JavaScriptException(engine.TypeError);
-            }
+	        if (o != Undefined.Instance && o != Null.Instance)
+		        return;
+
+	        throw new JavaScriptException(engine.TypeError);
         }
 
         public static IEnumerable<MethodBase> FindBestMatch(Engine engine, MethodBase[] methods, JsValue[] arguments)

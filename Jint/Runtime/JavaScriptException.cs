@@ -1,47 +1,70 @@
 ﻿using System;
 using Jint.Native;
 using Jint.Native.Error;
+using Jint.Parser;
 
 namespace Jint.Runtime
 {
-    public class JavaScriptException : Exception
-    {
-        private readonly JsValue _errorObject;
+	public class JavaScriptException : Exception
+	{
+		private readonly JsValue _errorObject;
 
-        public JavaScriptException(ErrorConstructor errorConstructor) : base("")
-        {
-            _errorObject = errorConstructor.Construct(Arguments.Empty);
-        }
+		private readonly Location _location;
 
-        public JavaScriptException(ErrorConstructor errorConstructor, string message)
-            : base(message)
-        {
-            _errorObject = errorConstructor.Construct(new JsValue[] { message });
-        }
+		public JavaScriptException(ErrorConstructor errorConstructor)
+			: base(string.Empty)
+		{
+			_errorObject = errorConstructor.Construct(Arguments.Empty);
+		}
 
-        public JavaScriptException(JsValue error)
-            : base(GetErrorMessage(error))
-        {
-            _errorObject = error;
-        }
+		public JavaScriptException(ErrorConstructor errorConstructor, string message)
+			: base(message)
+		{
+			_errorObject = errorConstructor.Construct(new JsValue[] { message });
+		}
 
-        private static string GetErrorMessage(JsValue error) 
-        {
-            if (error.IsObject())
-            {
-                var oi = error.AsObject();
-                var message = oi.Get("message").AsString();
-                return message;
-            }
-            else
-                return string.Empty;            
-        }
+		public JavaScriptException(ErrorConstructor errorConstructor, string message, Location location)
+			: base(message)
+		{
+			_errorObject = errorConstructor.Construct(new JsValue[] { message });
+			_location = location;
+		}
 
-        public JsValue Error { get { return _errorObject; } }
+		public JavaScriptException(JsValue error, Location location)
+			: base(GetErrorMessage(error, location))
+		{
+			_errorObject = error;
+			_location = location;
+		}
 
-        public override string ToString()
-        {
-            return _errorObject.ToString();
-        }
-    }
+		private static string GetErrorMessage(JsValue error, Location location)
+		{
+			string message = string.Empty;
+			if (error.IsObject())
+			{
+				var oi = error.AsObject();
+				message = oi.Get("message").AsString();
+			}
+
+			if (location != null)
+			{
+				if (string.IsNullOrEmpty(message))
+					return string.Format("Unknown error. Line {0}. Column: {1}.", location.Start.Line, location.Start.Column);
+
+				message += string.Format(". Line {0}. Column: {1}.", location.Start.Line, location.Start.Column);
+				return message;
+			}
+
+			return message;
+		}
+
+		public JsValue Error { get { return _errorObject; } }
+
+		public Location Location { get { return _location; } }
+
+		public override string ToString()
+		{
+			return _errorObject.ToString();
+		}
+	}
 }
