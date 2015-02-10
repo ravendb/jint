@@ -49,5 +49,10 @@
         {
             return string.Join("->", _stack.Select(cse => cse.ToString()).Reverse());
         }
+
+	    internal Stack<CallStackElement> Stack
+	    {
+		    get { return _stack; }
+	    }
     }
 }

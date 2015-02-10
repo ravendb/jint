@@ -1,4 +1,6 @@
-﻿using Jint.Runtime;
+﻿using System;
+using Jint.Parser;
+using Jint.Runtime;
 
 using Xunit;
 
@@ -26,14 +28,42 @@ var b = a.user.name;
 		public void T2()
 		{
 			var script = @"
-test();
+ test();
 ";
 
 			var engine = new Engine();
 			var e = Assert.Throws<JavaScriptException>(() => engine.Execute(script));
 			Assert.Equal("test is not defined", e.Message);
 			Assert.Equal(2, e.Location.Start.Line);
-			Assert.Equal(0, e.Location.Start.Column);
+			Assert.Equal(1, e.Location.Start.Column);
+		}
+
+		[Fact]
+		public void CanProduceCorrectStackTrace()
+		{
+			var engine = new Engine();
+
+			engine.Options.LimitRecursion(100);
+
+			engine.Execute(@"var a = function(v) {
+	return v.xxx.yyy;
+}
+
+var b = function(v) {
+	return a(v);
+}", new ParserOptions
+			{
+				Source = "custom.js"
+			});
+
+			var e = Assert.Throws<JavaScriptException>(() => engine.Execute("var x = b(7);", new ParserOptions { Source = "main.js"}));
+			Assert.Equal("xxx is undefined", e.Message);
+			Assert.Equal(2, e.Location.Start.Line);
+			Assert.Equal(8, e.Location.Start.Column);
+			Assert.Equal("custom.js", e.Location.Source);
+
+			var stack = e.CallStack;
+			Assert.Equal("a@custom.js:2" + Environment.NewLine + "b@custom.js:6" + Environment.NewLine + "anonymous function@main.js:1", stack);
 		}
 	}
 }

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Jint.Native;
 using Jint.Native.Error;
 using Jint.Parser;
+using Jint.Runtime.CallStack;
 
 namespace Jint.Runtime
 {
@@ -10,6 +13,8 @@ namespace Jint.Runtime
 		private readonly JsValue _errorObject;
 
 		private readonly Location _location;
+
+		private readonly string _callStack;
 
 		public JavaScriptException(ErrorConstructor errorConstructor)
 			: base(string.Empty)
@@ -30,11 +35,34 @@ namespace Jint.Runtime
 			_location = location;
 		}
 
-		public JavaScriptException(JsValue error, Location location)
+		public JavaScriptException(JsValue error, Location location, JintCallStack callStack)
 			: base(GetErrorMessage(error, location))
 		{
 			_errorObject = error;
 			_location = location;
+			_callStack = ConstructCallStack(location, callStack);
+		}
+
+		/// <summary>
+		/// Since JintCallStack differs in presentation between stacks we know from other languages 
+		/// we modify it slightly to make it easier to read.
+		/// 
+		/// Also internal callstack lucks current statement - this is why we call location. 
+		/// </summary>
+		/// <param name="location"></param>
+		/// <param name="callStack"></param>
+		/// <returns></returns>
+		private string ConstructCallStack(Location location, JintCallStack callStack)
+		{
+			var stack = callStack.Stack;
+
+			var functionsList = stack.Select(cse => cse.ToString()).ToList();
+			functionsList.Add("anonymous function"); // append root invocation
+
+			var locations = new List<string> {location.Source + ":" + location.Start.Line};
+			locations.AddRange(stack.Select(cse => cse.CallExpression.Location.Source + ":" + cse.CallExpression.Location.Start.Line));
+
+			return string.Join(Environment.NewLine, functionsList.Zip(locations, (f, l) => f + "@" + l));
 		}
 
 		private static string GetErrorMessage(JsValue error, Location location)
@@ -55,6 +83,8 @@ namespace Jint.Runtime
 		public JsValue Error { get { return _errorObject; } }
 
 		public Location Location { get { return _location; } }
+
+		public string CallStack { get {  return _callStack; } }
 
 		public override string ToString()
 		{
