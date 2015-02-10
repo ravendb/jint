@@ -9,7 +9,7 @@ namespace Jint.Tests
 	public class ErrorTests
 	{
 		[Fact]
-		public void T1()
+		public void CanReturnCorrectErrorMessageAndLocation1()
 		{
 			var script = @"
 var a = {};
@@ -25,7 +25,7 @@ var b = a.user.name;
 		}
 
 		[Fact]
-		public void T2()
+		public void CanReturnCorrectErrorMessageAndLocation2()
 		{
 			var script = @"
  test();
