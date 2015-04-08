@@ -140,6 +140,8 @@ namespace Jint
             ClrTypeConverter = new DefaultTypeConverter(this);
         }
 
+		public int StatementsCount { get { return _statementsCount;  } }
+
         public LexicalEnvironment GlobalEnvironment;
 
         public GlobalObject Global { get; private set; }
