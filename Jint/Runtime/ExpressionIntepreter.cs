@@ -388,7 +388,7 @@ namespace Jint.Runtime
                 {
                     var nx = TypeConverter.ToNumber(x);
                     var ny = TypeConverter.ToNumber(y);
-
+                    
                     if (double.IsNaN(nx) || double.IsNaN(ny))
                     {
                         return false;
@@ -415,12 +415,12 @@ namespace Jint.Runtime
                 return x == y;
             }
 
-            if (x == Null.Instance && y == Undefined.Instance)
-            {
-                return true;
-            }
+            var xIsNull = x == Null.Instance || x == Undefined.Instance ||
+                          (x.IsObject() && x.AsObject().IsPropagatedNullObject);
+            var yIsNull = y == Null.Instance || y == Undefined.Instance ||
+                          (x.IsObject() && x.AsObject().IsPropagatedNullObject);
 
-            if (x == Undefined.Instance && y == Null.Instance)
+            if (xIsNull && yIsNull)
             {
                 return true;
             }
@@ -816,7 +816,7 @@ namespace Jint.Runtime
                 throw new JavaScriptException(_engine.TypeError, r == null ? "" : string.Format("Object has no method '{0}'", (callee as Reference).GetReferencedName()));
             }
 
-            if (!func.IsObject())
+            if (!func.IsObject() || func.AsObject().IsPropagatedNullObject)
             {
                 throw new JavaScriptException(_engine.TypeError, r == null ? "" : string.Format("Property '{0}' of object is not a function", (callee as Reference).GetReferencedName()));
             }

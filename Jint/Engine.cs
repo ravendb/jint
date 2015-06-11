@@ -44,6 +44,8 @@ namespace Jint
 
         internal JintCallStack CallStack = new JintCallStack();
 
+        public ObjectInstance NullPropagationObject { get; private set; }
+
         public Engine() : this(null)
         {
         }
@@ -51,6 +53,10 @@ namespace Jint
         public Engine(Action<Options> options)
         {
             _executionContexts = new Stack<ExecutionContext>();
+            NullPropagationObject = new ObjectInstance(this)
+            {
+                UndefinedPropagation = true
+            };
 
             Global = GlobalObject.CreateGlobalObject(this);
 

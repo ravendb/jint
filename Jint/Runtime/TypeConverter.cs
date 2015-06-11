@@ -55,6 +55,8 @@ namespace Jint.Runtime
         {
             if (o.IsObject())
             {
+                if (o.AsObject().IsPropagatedNullObject)
+                    return false;
                 return true;
             }
 
