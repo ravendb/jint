@@ -55,7 +55,7 @@ namespace Jint
             _executionContexts = new Stack<ExecutionContext>();
             NullPropagationObject = new ObjectInstance(this)
             {
-                UndefinedPropagation = true
+                NullPropagation = true
             };
 
             Global = GlobalObject.CreateGlobalObject(this);

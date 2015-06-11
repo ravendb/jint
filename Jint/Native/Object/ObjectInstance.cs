@@ -14,7 +14,7 @@ namespace Jint.Native.Object
             Properties = new Dictionary<string, PropertyDescriptor>();
         }
 
-        public bool UndefinedPropagation { get; set; }
+        public bool NullPropagation { get; set; }
 
         public bool IsPropagatedNullObject
         {
@@ -57,7 +57,7 @@ namespace Jint.Native.Object
 
             if (desc == PropertyDescriptor.Undefined)
             {
-                return UndefinedPropagation ? Engine.NullPropagationObject : JsValue.Undefined;
+                return NullPropagation ? Engine.NullPropagationObject : JsValue.Undefined;
             }
 
             if (desc.IsDataDescriptor())
