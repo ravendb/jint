@@ -289,6 +289,9 @@ namespace Jint.Native.Object
         /// <returns></returns>
         public JsValue DefaultValue(Types hint)
         {
+            if (IsPropagatedNullObject)
+                return JsValue.Undefined;
+
             if (hint == Types.String || (hint == Types.None && Class == "Date"))
             {
                 var toString = Get("toString").TryCast<ICallable>();
