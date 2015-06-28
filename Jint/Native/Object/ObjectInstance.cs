@@ -62,7 +62,13 @@ namespace Jint.Native.Object
 
             if (desc.IsDataDescriptor())
             {
-                return desc.Value.HasValue ? desc.Value.Value : Undefined.Instance;
+                if (desc.Value.HasValue)
+                {
+                    if (desc.Value == Null.Instance && NullPropagation)
+                        return Engine.NullPropagationObject;
+                    return desc.Value.Value;
+                }
+                return Undefined.Instance;
             }
 
             var getter = desc.Get.HasValue ? desc.Get.Value : Undefined.Instance;
