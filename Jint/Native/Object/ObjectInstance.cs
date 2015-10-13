@@ -14,13 +14,6 @@ namespace Jint.Native.Object
             Properties = new Dictionary<string, PropertyDescriptor>();
         }
 
-        public bool NullPropagation { get; set; }
-
-        public bool IsPropagatedNullObject
-        {
-            get { return ReferenceEquals(Engine.NullPropagationObject, this); }
-        }
-
         public Engine Engine { get; set; }
 
         public IDictionary<string, PropertyDescriptor> Properties { get; private set; }
@@ -57,15 +50,13 @@ namespace Jint.Native.Object
 
             if (desc == PropertyDescriptor.Undefined)
             {
-                return NullPropagation ? Engine.NullPropagationObject : JsValue.Undefined;
+                return JsValue.Undefined;
             }
 
             if (desc.IsDataDescriptor())
             {
                 if (desc.Value.HasValue)
                 {
-                    if (desc.Value == Null.Instance && NullPropagation)
-                        return Engine.NullPropagationObject;
                     return desc.Value.Value;
                 }
                 return Undefined.Instance;
@@ -295,9 +286,6 @@ namespace Jint.Native.Object
         /// <returns></returns>
         public JsValue DefaultValue(Types hint)
         {
-            if (IsPropagatedNullObject)
-                return JsValue.Undefined;
-
             if (hint == Types.String || (hint == Types.None && Class == "Date"))
             {
                 var toString = Get("toString").TryCast<ICallable>();

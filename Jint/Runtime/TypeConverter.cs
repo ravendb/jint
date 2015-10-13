@@ -55,8 +55,6 @@ namespace Jint.Runtime
         {
             if (o.IsObject())
             {
-                if (o.AsObject().IsPropagatedNullObject)
-                    return false;
                 return true;
             }
 
@@ -345,6 +343,9 @@ namespace Jint.Runtime
 		public static void CheckObjectCoercible(Engine engine, JsValue o, MemberExpression expression, object baseReference)
 		{
 			if (o != Undefined.Instance && o != Null.Instance)
+				return;
+
+			if (engine.Options.IsNullPropagationEnabled())
 				return;
 
 			var message = string.Empty;

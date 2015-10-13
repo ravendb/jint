@@ -494,9 +494,6 @@ namespace Jint.Native
                             #else
                                 IDictionary<string, object> o = new ExpandoObject();
                             #endif
-
-                            if (_object.IsPropagatedNullObject)
-                                return null;
                             
                             foreach (var p in _object.Properties)
                             {

@@ -415,10 +415,8 @@ namespace Jint.Runtime
                 return x == y;
             }
 
-            var xIsNull = x == Null.Instance || x == Undefined.Instance ||
-                          (x.IsObject() && x.AsObject().IsPropagatedNullObject);
-            var yIsNull = y == Null.Instance || y == Undefined.Instance ||
-                          (x.IsObject() && x.AsObject().IsPropagatedNullObject);
+            var xIsNull = x == Null.Instance || x == Undefined.Instance;
+            var yIsNull = y == Null.Instance || y == Undefined.Instance;
 
             if (xIsNull && yIsNull)
             {
@@ -816,7 +814,7 @@ namespace Jint.Runtime
                 throw new JavaScriptException(_engine.TypeError, r == null ? "" : string.Format("Object has no method '{0}'", (callee as Reference).GetReferencedName()));
             }
 
-            if (!func.IsObject() || func.AsObject().IsPropagatedNullObject)
+            if (!func.IsObject())
             {
                 throw new JavaScriptException(_engine.TypeError, r == null ? "" : string.Format("Property '{0}' of object is not a function", (callee as Reference).GetReferencedName()));
             }

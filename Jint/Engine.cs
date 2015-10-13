@@ -44,8 +44,6 @@ namespace Jint
 
         internal JintCallStack CallStack = new JintCallStack();
 
-        public ObjectInstance NullPropagationObject { get; private set; }
-
         public Engine() : this(null)
         {
         }
@@ -53,10 +51,6 @@ namespace Jint
         public Engine(Action<Options> options)
         {
             _executionContexts = new Stack<ExecutionContext>();
-            NullPropagationObject = new ObjectInstance(this)
-            {
-                NullPropagation = true
-            };
 
             Global = GlobalObject.CreateGlobalObject(this);
 
@@ -462,14 +456,25 @@ namespace Jint
 
             if (reference.IsUnresolvableReference())
             {
-                throw new JavaScriptException(ReferenceError, reference.GetReferencedName() + " is not defined");
+	            if (Options.IsNullPropagationEnabled())
+	            {
+					return reference.GetBase();
+				}
+
+				throw new JavaScriptException(ReferenceError, reference.GetReferencedName() + " is not defined");
             }
 
             var baseValue = reference.GetBase();
 
             if (reference.IsPropertyReference())
             {
-                if (reference.HasPrimitiveBase() == false)
+	            if (Options.IsNullPropagationEnabled()
+	                && (baseValue.IsUndefined() || baseValue.IsNull()))
+	            {
+					return baseValue;
+	            }
+
+	            if (reference.HasPrimitiveBase() == false)
                 {
                     var o = TypeConverter.ToObject(this, baseValue);
                     return o.Get(reference.GetReferencedName());

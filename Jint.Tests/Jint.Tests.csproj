@@ -52,6 +52,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bugs\RavenDB_3929.cs" />
     <Compile Include="ErrorTests.cs" />
     <Compile Include="Parser\JavascriptParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

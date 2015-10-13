@@ -10,6 +10,7 @@ namespace Jint
 {
     public class Options
     {
+	    private bool _nullPropagation;
         private bool _discardGlobal;
         private bool _strict;
         private bool _allowDebuggerStatement;
@@ -20,7 +21,13 @@ namespace Jint
         private TimeSpan _timeoutInterval;
         private CultureInfo _culture = CultureInfo.CurrentCulture;
         private TimeZoneInfo _localTimeZone = TimeZoneInfo.Local;
-        private List<Assembly> _lookupAssemblies = new List<Assembly>(); 
+        private List<Assembly> _lookupAssemblies = new List<Assembly>();
+
+	    public Options NullPropagation(bool enable = true)
+	    {
+		    _nullPropagation = enable;
+		    return this;
+	    }
 
         /// <summary>
         /// When called, doesn't initialize the global scope.
@@ -167,5 +174,10 @@ namespace Jint
         {
             return _localTimeZone;
         }
+
+	    internal bool IsNullPropagationEnabled()
+	    {
+			return _nullPropagation;
+	    }
     }
 }
