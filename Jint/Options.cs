@@ -9,6 +9,7 @@ namespace Jint
 {
     public class Options
     {
+        private bool _nullPropagation;
         private bool _discardGlobal;
         private bool _strict;
         private bool _allowDebuggerStatement;
@@ -16,11 +17,17 @@ namespace Jint
         private bool _allowClr;
         private readonly List<IObjectConverter> _objectConverters = new List<IObjectConverter>();
         private int _maxStatements;
-        private int _maxRecursionDepth = -1; 
+        private int _maxRecursionDepth = -1;
         private TimeSpan _timeoutInterval;
         private CultureInfo _culture = CultureInfo.CurrentCulture;
         private TimeZoneInfo _localTimeZone = TimeZoneInfo.Local;
-        private List<Assembly> _lookupAssemblies = new List<Assembly>(); 
+        private List<Assembly> _lookupAssemblies = new List<Assembly>();
+
+        public Options NullPropagation(bool enable = true)
+        {
+            _nullPropagation = enable;
+            return this;
+        }
 
         /// <summary>
         /// When called, doesn't initialize the global scope.
@@ -64,7 +71,7 @@ namespace Jint
         }
 
         /// <summary>
-         /// Adds a <see cref="IObjectConverter"/> instance to convert CLR types to <see cref="JsValue"/>
+        /// Adds a <see cref="IObjectConverter"/> instance to convert CLR types to <see cref="JsValue"/>
         /// </summary>
         public Options AddObjectConverter(IObjectConverter objectConverter)
         {
@@ -88,7 +95,7 @@ namespace Jint
             _maxStatements = maxStatements;
             return this;
         }
-        
+
         public Options TimeoutInterval(TimeSpan timeoutInterval)
         {
             _timeoutInterval = timeoutInterval;
@@ -131,7 +138,7 @@ namespace Jint
         internal bool _IsDebugMode => _debugMode;
 
         internal bool _IsClrAllowed => _allowClr;
-        
+
         internal IList<Assembly> _LookupAssemblies => _lookupAssemblies;
 
         internal IEnumerable<IObjectConverter> _ObjectConverters => _objectConverters;
@@ -145,5 +152,10 @@ namespace Jint
         internal CultureInfo _Culture => _culture;
 
         internal TimeZoneInfo _LocalTimeZone => _localTimeZone;
+
+        internal bool IsNullPropagationEnabled()
+        {
+            return _nullPropagation;
+        }
     }
 }

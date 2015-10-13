@@ -46,7 +46,7 @@ namespace Jint.Runtime
             return input.AsObject().DefaultValue(preferredType);
         }
 
-    
+
         /// <summary>
         /// http://www.ecma-international.org/ecma-262/5.1/#sec-9.2
         /// </summary>
@@ -63,7 +63,7 @@ namespace Jint.Runtime
             {
                 return false;
             }
-            
+
             if (o.IsBoolean())
             {
                 return o.AsBoolean();
@@ -109,8 +109,8 @@ namespace Jint.Runtime
             if (o.IsNumber())
             {
                 return o.AsNumber();
-            } 
-            
+            }
+
             if (o.IsObject())
             {
                 var p = o.AsObject() as IPrimitiveInstance;
@@ -178,7 +178,7 @@ namespace Jint.Runtime
                     }
 
                     int i = int.Parse(s.Substring(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                 
+
                     return i;
                 }
                 catch (OverflowException)
@@ -207,7 +207,7 @@ namespace Jint.Runtime
             {
                 return 0;
             }
-            
+
             if (number.Equals(0) || double.IsInfinity(number))
             {
                 return number;
@@ -276,7 +276,7 @@ namespace Jint.Runtime
             {
                 return Null.Text;
             }
-            
+
             if (o.IsBoolean())
             {
                 return o.AsBoolean() ? "true" : "false";
@@ -341,25 +341,28 @@ namespace Jint.Runtime
             return value.Type;
         }
 
-		public static void CheckObjectCoercible(Engine engine, JsValue o, MemberExpression expression, object baseReference)
-		{
-			if (o != Undefined.Instance && o != Null.Instance)
-				return;
+        public static void CheckObjectCoercible(Engine engine, JsValue o, MemberExpression expression, object baseReference)
+        {
+            if (o != Undefined.Instance && o != Null.Instance)
+                return;
 
-			var message = string.Empty;
-			var reference = baseReference as Reference;
-			if (reference != null)
-				message = string.Format("{0} is {1}", reference.GetReferencedName(), o);
+            if (engine.Options.IsNullPropagationEnabled())
+                return;
 
-			throw new JavaScriptException(engine.TypeError, message, expression.Location);
-		}
+            var message = string.Empty;
+            var reference = baseReference as Reference;
+            if (reference != null)
+                message = string.Format("{0} is {1}", reference.GetReferencedName(), o);
+
+            throw new JavaScriptException(engine.TypeError, message, expression.Location);
+        }
 
         public static void CheckObjectCoercible(Engine engine, JsValue o)
         {
-	        if (o != Undefined.Instance && o != Null.Instance)
-		        return;
+            if (o != Undefined.Instance && o != Null.Instance)
+                return;
 
-	        throw new JavaScriptException(engine.TypeError);
+            throw new JavaScriptException(engine.TypeError);
         }
 
         public static IEnumerable<MethodBase> FindBestMatch(Engine engine, MethodBase[] methods, JsValue[] arguments)
@@ -383,7 +386,7 @@ namespace Jint.Runtime
                 {
                     var arg = objectArguments[i];
                     var paramType = parameters[i].ParameterType;
-                    
+
                     if (arg == null)
                     {
                         if (!TypeIsNullable(paramType))

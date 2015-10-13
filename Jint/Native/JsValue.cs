@@ -248,7 +248,7 @@ namespace Jint.Native
                 return false;
             }
 
-            if(ReferenceEquals(this, other))
+            if (ReferenceEquals(this, other))
             {
                 return true;
             }
@@ -466,7 +466,7 @@ namespace Jint.Native
                         case "Arguments":
                         case "Object":
 #if __IOS__
-                                IDictionary<string, object> o = new Dictionary<string, object>();
+                                IDictionary<string, object> o = new Dictionary<string, object>(); 
 #else
                             IDictionary<string, object> o = new ExpandoObject();
 #endif

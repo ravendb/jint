@@ -21,15 +21,15 @@ namespace Jint.Native.Object
         /// The prototype of this object.
         /// </summary>
         public ObjectInstance Prototype { get; set; }
-
+        
         /// <summary>
-        /// If true, own properties may be added to the
+        /// If true, own properties may be added to the 
         /// object.
         /// </summary>
         public bool Extensible { get; set; }
 
         /// <summary>
-        /// A String value indicating a specification defined
+        /// A String value indicating a specification defined 
         /// classification of objects.
         /// </summary>
         public virtual string Class
@@ -74,7 +74,7 @@ namespace Jint.Native.Object
             {
                 var val = desc.Value;
                 return val != null ? val : Undefined.Instance;
-            }
+                }
 
             var getter = desc.Get != null ? desc.Get : Undefined.Instance;
 
@@ -87,10 +87,10 @@ namespace Jint.Native.Object
             var callable = getter.TryCast<ICallable>();
             return callable.Call(this, Arguments.Empty);
         }
-
+        
         /// <summary>
-        /// Returns the Property Descriptor of the named
-        /// own property of this object, or undefined if
+        /// Returns the Property Descriptor of the named 
+        /// own property of this object, or undefined if 
         /// absent.
         /// http://www.ecma-international.org/ecma-262/5.1/#sec-8.12.1
         /// </summary>
@@ -120,7 +120,7 @@ namespace Jint.Native.Object
                 // optimmized implementation
                 return x;
             }
-
+            
             return PropertyDescriptor.Undefined;
         }
 
@@ -143,7 +143,7 @@ namespace Jint.Native.Object
             {
                 return prop;
             }
-
+            
             if(Prototype == null)
             {
                 return PropertyDescriptor.Undefined;
@@ -153,8 +153,8 @@ namespace Jint.Native.Object
         }
 
         /// <summary>
-        /// Sets the specified named property to the value
-        /// of the second parameter. The flag controls
+        /// Sets the specified named property to the value 
+        /// of the second parameter. The flag controls 
         /// failure handling.
         /// </summary>
         /// <param name="propertyName"></param>
@@ -201,8 +201,8 @@ namespace Jint.Native.Object
         }
 
         /// <summary>
-        /// Returns a Boolean value indicating whether a
-        /// [[Put]] operation with PropertyName can be
+        /// Returns a Boolean value indicating whether a 
+        /// [[Put]] operation with PropertyName can be 
         /// performed.
         /// http://www.ecma-international.org/ecma-262/5.1/#sec-8.12.4
         /// </summary>
@@ -260,8 +260,8 @@ namespace Jint.Native.Object
         }
 
         /// <summary>
-        /// Returns a Boolean value indicating whether the
-        /// object already has a property with the given
+        /// Returns a Boolean value indicating whether the 
+        /// object already has a property with the given 
         /// name.
         /// </summary>
         /// <param name="propertyName"></param>
@@ -272,8 +272,8 @@ namespace Jint.Native.Object
         }
 
         /// <summary>
-        /// Removes the specified named own property
-        /// from the object. The flag controls failure
+        /// Removes the specified named own property 
+        /// from the object. The flag controls failure 
         /// handling.
         /// </summary>
         /// <param name="propertyName"></param>
@@ -282,7 +282,7 @@ namespace Jint.Native.Object
         public virtual bool Delete(string propertyName, bool throwOnError)
         {
             var desc = GetOwnProperty(propertyName);
-
+            
             if (desc == PropertyDescriptor.Undefined)
             {
                 return true;
@@ -305,7 +305,7 @@ namespace Jint.Native.Object
         }
 
         /// <summary>
-        /// Hint is a String. Returns a default value for the
+        /// Hint is a String. Returns a default value for the 
         /// object.
         /// </summary>
         /// <param name="hint"></param>
@@ -368,8 +368,8 @@ namespace Jint.Native.Object
         }
 
         /// <summary>
-        /// Creates or alters the named own property to
-        /// have the state described by a Property
+        /// Creates or alters the named own property to 
+        /// have the state described by a Property 
         /// Descriptor. The flag controls failure handling.
         /// </summary>
         /// <param name="propertyName"></param>
@@ -379,7 +379,7 @@ namespace Jint.Native.Object
         public virtual bool DefineOwnProperty(string propertyName, PropertyDescriptor desc, bool throwOnError)
         {
             var current = GetOwnProperty(propertyName);
-
+            
             if (current == desc) {
                 return true;
             }
@@ -423,7 +423,7 @@ namespace Jint.Native.Object
             }
 
             // Step 5
-            if (!current.Configurable.HasValue &&
+            if (!current.Configurable.HasValue && 
                 !current.Enumerable.HasValue &&
                 !current.Writable.HasValue &&
                 current.Get == null &&
@@ -497,7 +497,7 @@ namespace Jint.Native.Object
                     else
                     {
                         SetOwnProperty(propertyName, current = new PropertyDescriptor(
-                            value: Undefined.Instance,
+                            value: Undefined.Instance, 
                             writable: null,
                             enumerable: current.Enumerable,
                             configurable: current.Configurable
@@ -598,7 +598,7 @@ namespace Jint.Native.Object
         }
 
         /// <summary>
-        /// Optimized version of [[Put]] when the property is known to be already declared
+        /// Optimized version of [[Put]] when the property is known to be already declared 
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
