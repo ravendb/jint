@@ -18,6 +18,7 @@ using Jint.Native.String;
 using Jint.Parser;
 using Jint.Parser.Ast;
 using Jint.Runtime;
+using Jint.Runtime.Debugger;
 using Jint.Runtime.Descriptors;
 using Jint.Runtime.Environments;
 using Jint.Runtime.Interop;
@@ -138,6 +139,8 @@ namespace Jint
             }
 
             ClrTypeConverter = new DefaultTypeConverter(this);
+            BreakPoints = new List<BreakPoint>();
+            DebugHandler = new DebugHandler(this);
         }
 
 		public int StatementsCount { get { return _statementsCount;  } }
@@ -168,6 +171,33 @@ namespace Jint
         public ExecutionContext ExecutionContext { get { return _executionContexts.Peek(); } }
 
         public Options Options { get; private set; }
+        
+        #region Debugger
+        public delegate StepMode DebugStepDelegate(object sender, DebugInformation e);
+        public delegate StepMode BreakDelegate(object sender, DebugInformation e);
+        public event DebugStepDelegate Step;
+        public event BreakDelegate Break;
+        internal DebugHandler DebugHandler { get; private set; }
+        public List<BreakPoint> BreakPoints { get; private set; }
+
+        internal StepMode? InvokeStepEvent(DebugInformation info)
+        {
+            if (Step != null)
+            {
+                return Step(this, info);
+            }
+            return null;
+        }
+
+        internal StepMode? InvokeBreakEvent(DebugInformation info)
+        {
+            if (Break != null)
+            {
+                return Break(this, info);
+            }
+            return null;
+        }
+        #endregion
 
         public ExecutionContext EnterExecutionContext(LexicalEnvironment lexicalEnvironment, LexicalEnvironment variableEnvironment, JsValue thisBinding)
         {
@@ -303,6 +333,11 @@ namespace Jint
             }
 
             _lastSyntaxNode = statement;
+            
+            if (Options.IsDebugMode())
+            {
+                DebugHandler.OnStep(statement);
+            }
 
             switch (statement.Type)
             {
@@ -710,7 +745,7 @@ namespace Jint
                     {
                         var go = Global;
                         var existingProp = go.GetProperty(fn);
-                        if (existingProp.Configurable.Value.AsBoolean())
+                        if (existingProp.Configurable.Value)
                         {
                             go.DefineOwnProperty(fn,
                                                  new PropertyDescriptor(
@@ -722,7 +757,7 @@ namespace Jint
                         }
                         else
                         {
-                            if (existingProp.IsAccessorDescriptor() || (!existingProp.Enumerable.Value.AsBoolean()))
+                            if (existingProp.IsAccessorDescriptor() || (!existingProp.Enumerable.Value))
                             {
                                 throw new JavaScriptException(TypeError);
                             }

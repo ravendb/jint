@@ -1,4 +1,6 @@
 ﻿using System;
+
+using Jint.Native;
 using Jint.Parser;
 using Jint.Runtime;
 
@@ -8,6 +10,30 @@ namespace Jint.Tests
 {
 	public class ErrorTests
 	{
+		[Fact]
+		public void Error()
+		{
+			var script = @"function test(a, b) { 
+return {
+	'one' : 's' instanceof String,
+	'two' : a instanceof String,
+	'three': b instanceof String
+};
+
+}";
+
+			var engine = new Engine();
+			engine.Execute(script);
+
+			var a = new JsValue("v");
+
+			var b = new JsValue(engine.String.Construct("w"));
+
+			var result = engine.Invoke("test", engine.Global, a, b);
+			var r = result.ToObject();
+
+		}
+
 		[Fact]
 		public void CanReturnCorrectErrorMessageAndLocation1()
 		{

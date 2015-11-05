@@ -2,7 +2,7 @@
 
 # Jint
 
-Jint is a __Javascript interpreter__ for .NET which provides full __ECMA 5.1__ compliance and can run on __any .NET plaftform__. Because it doesn' generate any .NET bytecode nor use the DLR it runs relatively small scripts faster. It's available as a PCL on Nuget at https://www.nuget.org/packages/Jint.
+Jint is a __Javascript interpreter__ for .NET which provides full __ECMA 5.1__ compliance and can run on __any .NET plaftform__. Because it doesn't generate any .NET bytecode nor use the DLR it runs relatively small scripts faster. It's available as a PCL on Nuget at https://www.nuget.org/packages/Jint.
 
 # Features
 
@@ -10,11 +10,17 @@ Jint is a __Javascript interpreter__ for .NET which provides full __ECMA 5.1__ c
 - .NET Portable Class Library - http://msdn.microsoft.com/en-us/library/gg597391(v=vs.110).aspx
 - .NET Interoperability 
 
+# Discussion
+
+[![Join the chat at https://gitter.im/sebastienros/jint](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sebastienros/jint)
+
+Or post your questions with the `jint` tag on [stackoverflow](http://stackoverflow.com/questions/tagged/jint).
+
 # Examples
 
 This example defines a new value named `log` pointing to `Console.WriteLine`, then executes 
 a script calling `log('Hello World!')`. 
-```csharp
+```c#
     var engine = new Engine()
         .SetValue("log", new Action<object>(Console.WriteLine))
         ;
@@ -28,7 +34,7 @@ a script calling `log('Hello World!')`.
     ");
 ```
 Here, the variable `x` is set to `3` and `x * x` is executed in JavaScript. The result is returned to .NET directly, in this case as a `double` value `9`. 
-```csharp
+```c#
     var square = new Engine()
         .SetValue("x", 3) // define a new variable
         .Execute("x * x") // execute a statement
@@ -37,27 +43,27 @@ Here, the variable `x` is set to `3` and `x * x` is executed in JavaScript. The 
         ;
 ```
 You can also directly pass POCOs or anonymous objects and use them from JavaScript. In this example for instance a new `Person` instance is manipulated from JavaScript. 
-```csharp
+```c#
     var p = new Person {
         Name = "Mickey Mouse"
     };
 
     var engine = new Engine()
         .SetValue("p", p)
-        .Execute("p.Name === 'Mickey Mouse')
+        .Execute("p.Name === 'Mickey Mouse'")
         ;
 ```
 You can invoke JavaScript function reference
-```csharp
+```c#
     var add = new Engine()
-        .Execute("function add(a, b) { return a + b; }");
+        .Execute("function add(a, b) { return a + b; }")
         .GetValue("add")
         ;
 
     add.Invoke(1, 2); // -> 3
 ```
 or directly by name 
-```csharp
+```c#
     var engine = new Engine()
         .Execute("function add(a, b) { return a + b; }")
         ;
@@ -67,12 +73,12 @@ or directly by name
 ## Accessing .NET assemblies and classes
 
 You can allow an engine to access any .NET class by configuring the engine instance like this:
-```csharp
+```c#
     var engine = new Engine(cfg => cfg.AllowClr());
 ```
 Then you have access to the `System` namespace as a global value. Here is how it's used in the context on the command line utility:
 ```javascript
-    jint> var file = new System.IO.File('log.txt');
+    jint> var file = new System.IO.StreamWriter('log.txt');
     jint> file.WriteLine('Hello World !');
     jint> file.Dispose();
 ```
@@ -83,7 +89,7 @@ And even create shortcuts to commong .NET methods
     => "Hello World !"
 ```
 When allowing the CLR, you can optionally pass custom assemblies to load types from. 
-```csharp
+```c#
     var engine = new Engine(cfg => cfg
         .AllowClr(typeof(Bar).Assembly)
     );
@@ -101,6 +107,27 @@ Generic types are also supported. Here is how to declare, instantiate and use a 
     jint> list.Add('foo');
     jint> list.Add(1); // automatically converted to String
     jint> list.Count; // 2
+```
+
+## Internationalization
+
+You can enforce what Time Zone or Culture the engine should use when locale JavaScript methods are used if you don't want to use the computer's default values.
+
+This example forces the Time Zone to Pacific Standard Time.
+```c#
+    var PST = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+    var engine = new Engine(cfg => cfg.LocalTimeZone(PST));
+    
+    engine.Execute("new Date().toString()"); // Wed Dec 31 1969 16:00:00 GMT-08:00
+```
+
+This example is using French as the default culture.
+```c#
+    var FR = CultureInfo.GetCultureInfo("fr-FR");
+    var engine = new Engine(cfg => cfg.Culture(FR));
+    
+    engine.Execute("new Number(1.23).toString()"); // 1.23
+    engine.Execute("new Number(1.23).toLocaleString()"); // 1,23
 ```
 
 ## Implemented features:

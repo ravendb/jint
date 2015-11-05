@@ -14,6 +14,7 @@ namespace Jint
         private bool _discardGlobal;
         private bool _strict;
         private bool _allowDebuggerStatement;
+        private bool _debugMode;
         private bool _allowClr;
         private readonly List<IObjectConverter> _objectConverters = new List<IObjectConverter>();
         private int _maxStatements;
@@ -58,6 +59,15 @@ namespace Jint
         public Options AllowDebuggerStatement(bool allowDebuggerStatement = true)
         {
             _allowDebuggerStatement = allowDebuggerStatement;
+            return this;
+        }
+
+        /// <summary>
+        /// Allow to run the script in debug mode.
+        /// </summary>
+        public Options DebugMode(bool debugMode = true)
+        {
+            _debugMode = debugMode;
             return this;
         }
 
@@ -133,6 +143,11 @@ namespace Jint
         internal bool IsDebuggerStatementAllowed()
         {
             return _allowDebuggerStatement;
+        }
+
+        internal bool IsDebugMode()
+        {
+            return _debugMode;
         }
 
         internal bool IsClrAllowed()
