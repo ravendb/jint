@@ -332,7 +332,6 @@ namespace Jint.Runtime
             catch (JavaScriptException e)
             {
                 c = new Completion(Completion.Throw, e.Error, null, withStatement.Location);
-                c.Location = withStatement.Location;
             }
             finally
             {

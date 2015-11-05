@@ -38,7 +38,5 @@ namespace Jint.Runtime
         {
             return Value.HasValue ? Value.Value : Undefined.Instance;
         }
-
-        public Jint.Parser.Location Location { get; set; }
     }
 }
