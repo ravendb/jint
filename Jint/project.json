@@ -1,0 +1,69 @@
+﻿{
+  "title": "Jint",
+  "version": "2.7.0",
+  "compile": [ "**/*.cs" ],
+
+  "compilationOptions": {
+    "define": [ ],
+    "keyFile": "Jint.snk"
+  },
+
+  "frameworks": {
+    "dnxcore50": {
+      "dependencies": {
+        "Microsoft.CSharp": "4.0.1-beta-23516",
+        "Microsoft.Win32.Primitives": "4.0.1-beta-23516",
+
+        "System.Collections": "4.0.11-beta-23516",
+        "System.Collections.Immutable": "1.1.38-beta-23516",
+        "System.Collections.Concurrent": "4.0.11-beta-23516",
+        "System.Console": "4.0.0-beta-23516",
+
+        "System.Diagnostics.Tools": "4.0.1-beta-23516",
+        "System.Diagnostics.Debug": "4.0.11-beta-23516",
+        "System.Diagnostics.Process": "4.1.0-beta-23516",
+        "System.Diagnostics.StackTrace": "4.0.1-beta-23516",
+
+        "System.IO": "4.0.11-beta-23516",
+        "System.IO.Compression": "4.1.0-beta-23516",
+        "System.IO.MemoryMappedFiles": "4.0.0-beta-23516",
+        "System.IO.Compression.ZipFile": "4.0.1-beta-23516",
+        "System.IO.FileSystem.DriveInfo": "4.0.0-beta-23516",
+        "System.IO.FileSystem.Primitives": "4.0.1-beta-23516",
+
+        "System.Threading": "4.0.11-beta-23516",
+        "System.Threading.Tasks": "4.0.11-beta-23516",
+        "System.Threading.Tasks.Parallel": "4.0.1-beta-23516",
+        "System.Threading.Thread": "4.0.0-beta-23516",
+        "System.Threading.Overlapped": "4.0.1-beta-23516",
+
+        "System.Text.Encoding": "4.0.11-beta-23516",
+        "System.Runtime": "4.0.21-beta-23516",
+
+        "System.Reflection.TypeExtensions": "4.1.0-beta-23516",
+
+        "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-beta-23516",
+
+        "Microsoft.Framework.ConfigurationModel": "1.0.0-beta4",
+        "System.Collections.Specialized": "4.0.1-beta-23516",
+        "System.IO.FileSystem": "4.0.1-beta-23516",
+        "System.Linq": "4.0.1-beta-23516",
+        "System.Net.Http": "4.0.1-beta-23516",
+        "System.Net.Http.WinHttpHandler": "4.0.0-beta-23516",
+        "System.Net.NameResolution": "4.0.0-beta-23516",
+        "System.Security.Cryptography.Algorithms": "4.0.0-beta-23516",
+        "System.Security.Cryptography.Cng": "4.0.0-beta-23516",
+        "System.Security.Cryptography.Primitives": "4.0.0-beta-23516",
+        "System.ServiceModel.Primitives": "4.1.0-beta-23516",
+        "System.Text.Encoding.Extensions": "4.0.11-beta-23516",
+        "System.Text.RegularExpressions": "4.0.11-beta-23516",
+        "System.Xml.XDocument": "4.0.11-beta-23516",
+        "System.AppContext": "4.0.1-beta-23516",
+        "System.Net.WebSockets.Client": "4.0.0-beta-23516",
+
+        "System.Diagnostics.Contracts": "4.0.1-beta-23516"
+      }
+    }
+
+  }
+}

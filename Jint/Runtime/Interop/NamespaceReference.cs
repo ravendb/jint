@@ -101,7 +101,7 @@ namespace Jint.Runtime.Interop
             }
 
             // search in loaded assemblies
-            foreach (var assembly in new[] { Assembly.GetCallingAssembly(), Assembly.GetExecutingAssembly() }.Distinct())
+            foreach (var assembly in new[] { Assembly.GetCallingAssembly(), typeof(NamespaceReference).GetTypeInfo().Assembly }.Distinct())
             {
                 type = assembly.GetType(path);
                 if (type != null)

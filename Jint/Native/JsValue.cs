@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Dynamic;
+using System.Reflection;
 using Jint.Native.Array;
 using Jint.Native.Boolean;
 using Jint.Native.Date;
@@ -293,7 +294,7 @@ namespace Jint.Native
                 }
             }
 
-            var typeCode = System.Type.GetTypeCode(value.GetType());
+            var typeCode = GetTypeCode(value.GetType());
             switch (typeCode)
             {
                 case TypeCode.Boolean:
@@ -378,13 +379,22 @@ namespace Jint.Native
                 return new DelegateWrapper(engine, d);
             }
 
-            if (value.GetType().IsEnum)
+            if (value.GetType().GetTypeInfo().IsEnum)
             {
                 return new JsValue((Int32)value);
             }
 
             // if no known type could be guessed, wrap it as an ObjectInstance
             return new ObjectWrapper(engine, value);
+        }
+
+        private static TypeCode GetTypeCode(object request)
+        {
+            var convertible = request as IConvertible;
+            if (convertible == null)
+                return TypeCode.Object;
+
+            return convertible.GetTypeCode();
         }
 
         /// <summary>
