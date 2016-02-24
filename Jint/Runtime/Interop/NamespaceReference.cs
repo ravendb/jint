@@ -101,7 +101,12 @@ namespace Jint.Runtime.Interop
             }
 
             // search in loaded assemblies
-            foreach (var assembly in new[] { Assembly.GetCallingAssembly(), typeof(NamespaceReference).GetTypeInfo().Assembly }.Distinct())
+#if DNXCORE50
+            var assemblyToLoad = Type.GetType("Raven.Server.RavenServer").GetTypeInfo().Assembly;
+#else
+            Assembly.GetCallingAssembly();
+#endif
+            foreach (var assembly in new[] { assemblyToLoad, typeof(NamespaceReference).GetTypeInfo().Assembly }.Distinct())
             {
                 type = assembly.GetType(path);
                 if (type != null)
