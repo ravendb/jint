@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Jint.Native.Number;
@@ -10,6 +11,7 @@ using Jint.Runtime;
 using Jint.Runtime.Debugger;
 using Xunit;
 using System.Net;
+using System.Net.Http;
 
 namespace Jint.Tests.Runtime
 {
@@ -43,7 +45,7 @@ namespace Jint.Tests.Runtime
         {
             const string prefix = "Jint.Tests.Runtime.Scripts.";
 
-            var assembly = Assembly.GetExecutingAssembly();
+            var assembly = typeof(EngineTests).Assembly();
             var scriptPath = prefix + file;
 
             using (var stream = assembly.GetManifestResourceStream(scriptPath))
@@ -904,7 +906,11 @@ namespace Jint.Tests.Runtime
         public void ShouldBeCultureInvariant()
         {
             // decimals in french are separated by commas
+#if DNXCORE50
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("fr-FR");
+#else
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+#endif
 
             var engine = new Engine();
 
@@ -953,10 +959,14 @@ namespace Jint.Tests.Runtime
         [Fact]
         public void UtcShouldUseUtc()
         {
+#if DNXCORE50
+            var customTimeZone = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(7, 11, 0));
+
+#else
             const string customName = "Custom Time";
             var customTimeZone = TimeZoneInfo.CreateCustomTimeZone(customName, new TimeSpan(7, 11, 0), customName, customName, customName, null, false);
+#endif
             var engine = new Engine(cfg => cfg.LocalTimeZone(customTimeZone));
-
             var result = engine.Execute("Date.UTC(1970,0,1)").GetCompletionValue().AsNumber();
             Assert.Equal(0, result);
         }
@@ -964,8 +974,13 @@ namespace Jint.Tests.Runtime
         [Fact]
         public void ShouldUseLocalTimeZoneOverride()
         {
+#if DNXCORE50
+            var customTimeZone = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(0, 11, 0));
+
+#else
             const string customName = "Custom Time";
             var customTimeZone = TimeZoneInfo.CreateCustomTimeZone(customName, new TimeSpan(0, 11, 0), customName, customName, customName, null, false);
+#endif
 
             var engine = new Engine(cfg => cfg.LocalTimeZone(customTimeZone));
 
@@ -1007,8 +1022,14 @@ namespace Jint.Tests.Runtime
         [InlineData("1970-01-01T00:00:00.000-00:00")]
         public void ShouldParseAsUtc(string date)
         {
+#if DNXCORE50
+            var customTimeZone = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(7, 11, 0));
+
+#else
             const string customName = "Custom Time";
             var customTimeZone = TimeZoneInfo.CreateCustomTimeZone(customName, new TimeSpan(7, 11, 0), customName, customName, customName, null, false);
+#endif
+
             var engine = new Engine(cfg => cfg.LocalTimeZone(customTimeZone));
 
             engine.SetValue("d", date);
@@ -1036,8 +1057,14 @@ namespace Jint.Tests.Runtime
         [InlineData("1970-01-01T00:00:00.000+00:11")]
         public void ShouldParseAsLocalTime(string date)
         {
+#if DNXCORE50
+            var customTimeZone = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(0, 11, 0));
+
+#else
             const string customName = "Custom Time";
             var customTimeZone = TimeZoneInfo.CreateCustomTimeZone(customName, new TimeSpan(0, 11, 0), customName, customName, customName, null, false);
+#endif
+
             var engine = new Engine(cfg => cfg.LocalTimeZone(customTimeZone)).SetValue("d", date);
 
             var result = engine.Execute("Date.parse(d);").GetCompletionValue().AsNumber();
@@ -1058,7 +1085,7 @@ namespace Jint.Tests.Runtime
         public void ShouldExecuteHandlebars()
         {
             var url = "http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.js";
-            var content = new WebClient().DownloadString(url);
+            var content = new HttpClient().GetStringAsync(url).Result;
 
             RunTest(content);
 
@@ -1543,8 +1570,14 @@ namespace Jint.Tests.Runtime
         public void DateToStringMethodsShouldUseCurrentTimeZoneAndCulture()
         {
             // Forcing to PDT and FR for tests
+
+#if DNXCORE50
+            var PDT = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(-7, 0, 0));
+            var FR = new CultureInfo("fr-FR");
+#else
             var PDT = TimeZoneInfo.CreateCustomTimeZone("Pacific Daylight Time", new TimeSpan(-7, 0, 0), "Pacific Daylight Time", "Pacific Daylight Time");
             var FR = CultureInfo.GetCultureInfo("fr-FR");
+#endif
 
             var engine = new Engine(options => options.LocalTimeZone(PDT).Culture(FR))
                 .SetValue("log", new Action<object>(Console.WriteLine))
@@ -1568,8 +1601,13 @@ namespace Jint.Tests.Runtime
         public void DateShouldParseToString()
         {
             // Forcing to PDT and FR for tests
+#if DNXCORE50
+            var PDT = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(-7, 0, 0));
+            var FR = new CultureInfo("fr-FR");
+#else
             var PDT = TimeZoneInfo.CreateCustomTimeZone("Pacific Daylight Time", new TimeSpan(-7, 0, 0), "Pacific Daylight Time", "Pacific Daylight Time");
             var FR = CultureInfo.GetCultureInfo("fr-FR");
+#endif
 
             new Engine(options => options.LocalTimeZone(PDT).Culture(FR))
                 .SetValue("log", new Action<object>(Console.WriteLine))
@@ -1586,8 +1624,13 @@ namespace Jint.Tests.Runtime
         public void LocaleNumberShouldUseLocalCulture()
         {
             // Forcing to PDT and FR for tests
+#if DNXCORE50
+            var PDT = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(-7, 0, 0));
+            var FR = new CultureInfo("fr-FR");
+#else
             var PDT = TimeZoneInfo.CreateCustomTimeZone("Pacific Daylight Time", new TimeSpan(-7, 0, 0), "Pacific Daylight Time", "Pacific Daylight Time");
             var FR = CultureInfo.GetCultureInfo("fr-FR");
+#endif
 
             new Engine(options => options.LocalTimeZone(PDT).Culture(FR))
                 .SetValue("log", new Action<object>(Console.WriteLine))

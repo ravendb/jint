@@ -15,7 +15,7 @@ namespace Jint.Tests.Runtime
 
         public InteropTests()
         {
-            _engine = new Engine(cfg => cfg.AllowClr(typeof(Shape).Assembly))
+            _engine = new Engine(cfg => cfg.AllowClr(typeof(Shape).Assembly()))
                 .SetValue("log", new Action<object>(Console.WriteLine))
                 .SetValue("assert", new Action<bool>(Assert.True))
                 ;
