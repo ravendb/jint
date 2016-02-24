@@ -14,7 +14,7 @@ namespace Jint.Tests.Ecma
 
         public EcmaTest()
         {
-            var assemblyPath = new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath;
+            var assemblyPath = new Uri(typeof(EcmaTest).Assembly.CodeBase).LocalPath;
             var assemblyDirectory = new FileInfo(assemblyPath).Directory;
 
             BasePath = assemblyDirectory.Parent.Parent.FullName;

@@ -1,5 +1,5 @@
 ﻿{
-  "title": "Jint.Tests",
+  "title": "Jint.Tests.Ecma",
   "version": "2.7.0",
   "compile": [ "**/*.cs" ],
   "frameworks": {
