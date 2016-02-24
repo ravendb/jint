@@ -20,6 +20,26 @@ namespace Jint.Native
     [DebuggerTypeProxy(typeof(JsValueDebugView))]
     public struct JsValue : IEquatable<JsValue>
     {
+#if DNXCORE50
+        private static readonly Type[] knownTypes = new[]
+        {
+                typeof(bool), typeof(char), typeof(sbyte), typeof(byte),
+                typeof(short), typeof(ushort), typeof(int), typeof(uint),
+                typeof(long), typeof(ulong), typeof(float), typeof(double),
+                typeof(decimal), typeof(string),
+                typeof(DateTime)
+        };
+
+        private static readonly TypeCode[] knownCodes = new[]
+        {
+            TypeCode.Boolean, TypeCode.Char, TypeCode.SByte, TypeCode.Byte,
+            TypeCode.Int16, TypeCode.UInt16, TypeCode.Int32, TypeCode.UInt32,
+            TypeCode.Int64, TypeCode.UInt64, TypeCode.Single, TypeCode.Double,
+            TypeCode.Decimal, TypeCode.String,
+            TypeCode.DateTime
+        };
+#endif
+
         public readonly static JsValue Undefined = new JsValue(Types.Undefined);
         public readonly static JsValue Null = new JsValue(Types.Null);
         public readonly static JsValue False = new JsValue(false);
@@ -388,13 +408,18 @@ namespace Jint.Native
             return new ObjectWrapper(engine, value);
         }
 
-        private static TypeCode GetTypeCode(object request)
+        private static TypeCode GetTypeCode(Type type)
         {
-            var convertible = request as IConvertible;
-            if (convertible == null)
-                return TypeCode.Object;
+#if !DNXCORE50
+            return System.Type.GetTypeCode(type);
+#else
+            if (type == null)
+                return TypeCode.Empty;
 
-            return convertible.GetTypeCode();
+            var idx = System.Array.IndexOf(knownTypes, type);
+            return idx >= 0 ? knownCodes[idx] : TypeCode.Object;
+
+#endif
         }
 
         /// <summary>
