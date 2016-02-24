@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+using Jint.Runtime.Interop;
+
 namespace Jint
 {
     public static class TypeExtensions
@@ -42,12 +44,48 @@ namespace Jint
 #endif
         }
 
+        public static bool IsEnum(this Type type)
+        {
+#if !DNXCORE50
+            return type.IsEnum;
+#else
+            return type.GetTypeInfo().IsEnum;
+#endif
+        }
+
+        public static bool IsGenericType(this Type type)
+        {
+#if !DNXCORE50
+            return type.IsGenericType;
+#else
+            return type.GetTypeInfo().IsGenericType;
+#endif
+        }
+
         public static Type BaseType(this Type type)
         {
 #if !DNXCORE50
                 return type.BaseType;
 #else
             return type.GetTypeInfo().BaseType;
+#endif
+        }
+
+        public static MethodInfo Method(this Delegate d)
+        {
+#if !DNXCORE50
+            return d.Method;
+#else
+            return d.GetMethodInfo();
+#endif
+        }
+
+        public static bool IsSubclassOf(this Type type, Type subclass)
+        {
+#if !DNXCORE50
+            return type.IsSubclassOf(subclass);
+#else
+            return type.GetTypeInfo().IsSubclassOf(subclass);
 #endif
         }
 
