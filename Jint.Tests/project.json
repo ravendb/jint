@@ -18,5 +18,8 @@
   },
   "dependencies": {
     "Jint": "2.7.0"
+  },
+  "commands": {
+    "test": "xunit.runner.dnx"
   }
 }
