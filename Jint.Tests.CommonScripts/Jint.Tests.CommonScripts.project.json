@@ -4,12 +4,12 @@
       "dependencies": {
         "xunit": "2.2.0-beta1-build3239"
       },
-      "frameworkAssemblies": {
-      }
+      "frameworkAssemblies": {}
     }
   },
   "runtimes": {
-    "win": {
-    }
+    "win": {}
+  },
+  "dependencies": {
   }
 }
