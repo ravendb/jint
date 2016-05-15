@@ -8,6 +8,7 @@ using Jint.Native.Number;
 using Jint.Native.Object;
 using Jint.Parser.Ast;
 using Jint.Runtime.References;
+using Jint.Native.String;
 
 namespace Jint.Runtime
 {
@@ -136,7 +137,7 @@ namespace Jint.Runtime
 
             if (o.IsString())
             {
-                var s = o.AsString().Trim();
+                var s = StringPrototype.TrimEx(o.AsString());
 
                 if (String.IsNullOrEmpty(s))
                 {

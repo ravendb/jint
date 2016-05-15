@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using Jint.Native;
 using Jint.Runtime.Interop;
 
 namespace Jint
 {
     public class Options
     {
-	    private bool _nullPropagation;
+        private bool _nullPropagation;
         private bool _discardGlobal;
         private bool _strict;
         private bool _allowDebuggerStatement;
@@ -18,17 +17,17 @@ namespace Jint
         private bool _allowClr;
         private readonly List<IObjectConverter> _objectConverters = new List<IObjectConverter>();
         private int _maxStatements;
-        private int _maxRecursionDepth = -1; 
+        private int _maxRecursionDepth = -1;
         private TimeSpan _timeoutInterval;
         private CultureInfo _culture = CultureInfo.CurrentCulture;
         private TimeZoneInfo _localTimeZone = TimeZoneInfo.Local;
         private List<Assembly> _lookupAssemblies = new List<Assembly>();
 
-	    public Options NullPropagation(bool enable = true)
-	    {
-		    _nullPropagation = enable;
-		    return this;
-	    }
+        public Options NullPropagation(bool enable = true)
+        {
+            _nullPropagation = enable;
+            return this;
+        }
 
         /// <summary>
         /// When called, doesn't initialize the global scope.
@@ -72,7 +71,7 @@ namespace Jint
         }
 
         /// <summary>
-         /// Adds a <see cref="IObjectConverter"/> instance to convert CLR types to <see cref="JsValue"/>
+        /// Adds a <see cref="IObjectConverter"/> instance to convert CLR types to <see cref="JsValue"/>
         /// </summary>
         public Options AddObjectConverter(IObjectConverter objectConverter)
         {
@@ -96,7 +95,7 @@ namespace Jint
             _maxStatements = maxStatements;
             return this;
         }
-        
+
         public Options TimeoutInterval(TimeSpan timeoutInterval)
         {
             _timeoutInterval = timeoutInterval;
@@ -130,69 +129,34 @@ namespace Jint
             return this;
         }
 
-        internal bool GetDiscardGlobal()
-        {
-            return _discardGlobal;
-        }
+        internal bool _IsGlobalDiscarded => _discardGlobal;
 
-        internal bool IsStrict()
-        {
-            return _strict;
-        }
+        internal bool _IsStrict => _strict;
 
-        internal bool IsDebuggerStatementAllowed()
-        {
-            return _allowDebuggerStatement;
-        }
+        internal bool _IsDebuggerStatementAllowed => _allowDebuggerStatement;
 
-        internal bool IsDebugMode()
-        {
-            return _debugMode;
-        }
+        internal bool _IsDebugMode => _debugMode;
 
-        internal bool IsClrAllowed()
-        {
-            return _allowClr;
-        }
-        
-        internal IList<Assembly> GetLookupAssemblies()
-        {
-            return _lookupAssemblies;
-        }
+        internal bool _IsClrAllowed => _allowClr;
 
-        internal IEnumerable<IObjectConverter> GetObjectConverters()
-        {
-            return _objectConverters;
-        }
+        internal IList<Assembly> _LookupAssemblies => _lookupAssemblies;
 
-        internal int GetMaxStatements()
-        {
-            return _maxStatements;
-        }
+        internal IEnumerable<IObjectConverter> _ObjectConverters => _objectConverters;
 
-        internal int GetMaxRecursionDepth()
-        {
-            return _maxRecursionDepth;
-        }
+        internal int _MaxStatements => _maxStatements;
 
-        internal TimeSpan GetTimeoutInterval()
-        {
-            return _timeoutInterval;
-        }
+        internal int _MaxRecursionDepth => _maxRecursionDepth;
 
-        internal CultureInfo GetCulture()
-        {
-            return _culture;
-        }
+        internal TimeSpan _TimeoutInterval => _timeoutInterval;
 
-        internal TimeZoneInfo GetLocalTimeZone()
-        {
-            return _localTimeZone;
-        }
+        internal CultureInfo _Culture => _culture;
 
-	    internal bool IsNullPropagationEnabled()
-	    {
-			return _nullPropagation;
-	    }
+        internal TimeZoneInfo _LocalTimeZone => _localTimeZone;
+
+        internal bool IsNullPropagationEnabled()
+        {
+            return _nullPropagation;
+        }
     }
 }
+

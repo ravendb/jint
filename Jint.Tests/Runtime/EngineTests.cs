@@ -951,6 +951,17 @@ namespace Jint.Tests.Runtime
         }
 
         [Fact]
+        public void LocalDateTimeShouldNotLoseTimezone()
+        {
+            var date = new DateTime(2016, 1, 1, 13, 0, 0, DateTimeKind.Local);
+            var engine = new Engine().SetValue("localDate", date);
+            engine.Execute(@"localDate");
+            var actual = engine.GetCompletionValue().AsDate().ToDateTime();
+            Assert.Equal(date.ToUniversalTime(), actual.ToUniversalTime());
+            Assert.Equal(date.ToLocalTime(), actual.ToLocalTime());
+        }
+
+        [Fact]
         public void UtcShouldUseUtc()
         {
             const string customName = "Custom Time";
@@ -1597,6 +1608,16 @@ namespace Jint.Tests.Runtime
                     var d = new Number(-1.23);
                     equal('-1.23', d.toString());
                     equal('-1,23', d.toLocaleString());
+            ");
+        }
+
+        [Fact]
+        public void DateCtorShouldAcceptDate()
+        {
+            RunTest(@"
+                var a = new Date();
+                var b = new Date(a);
+                assert(String(a) === String(b));
             ");
         }
     }
