@@ -44,7 +44,7 @@ namespace Jint.Runtime.Interop
 
         public ObjectInstance Construct(JsValue[] arguments)
         {
-            if (arguments.Length == 0 && Type.IsValueType)
+            if (arguments.Length == 0 && Type.IsValueType())
             {
                 var instance = Activator.CreateInstance(Type);
                 var result = TypeConverter.ToObject(Engine, JsValue.FromObject(Engine, instance));
@@ -149,7 +149,7 @@ namespace Jint.Runtime.Interop
         {
             // todo: cache members locally
 
-            if (Type.IsEnum)
+            if (Type.IsEnum())
             {
                 Array enumValues = Enum.GetValues(Type);
                 Array enumNames = Enum.GetNames(Type);

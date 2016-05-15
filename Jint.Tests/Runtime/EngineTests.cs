@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Jint.Native.Number;
@@ -10,6 +11,7 @@ using Jint.Runtime;
 using Jint.Runtime.Debugger;
 using Xunit;
 using System.Net;
+using System.Net.Http;
 
 namespace Jint.Tests.Runtime
 {
@@ -43,7 +45,7 @@ namespace Jint.Tests.Runtime
         {
             const string prefix = "Jint.Tests.Runtime.Scripts.";
 
-            var assembly = Assembly.GetExecutingAssembly();
+            var assembly = typeof(EngineTests).Assembly();
             var scriptPath = prefix + file;
 
             using (var stream = assembly.GetManifestResourceStream(scriptPath))
@@ -617,7 +619,7 @@ namespace Jint.Tests.Runtime
                 () => new Engine(cfg => cfg.MaxStatements(100)).Execute("while(true);")
             );
         }
-        
+
         [Fact]
         public void ShouldThrowTimeout()
         {
@@ -904,7 +906,11 @@ namespace Jint.Tests.Runtime
         public void ShouldBeCultureInvariant()
         {
             // decimals in french are separated by commas
+#if DNXCORE50
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("fr-FR");
+#else
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+#endif
 
             var engine = new Engine();
 
@@ -951,23 +957,15 @@ namespace Jint.Tests.Runtime
         }
 
         [Fact]
-        public void LocalDateTimeShouldNotLoseTimezone()
-        {
-            var date = new DateTime(2016, 1, 1, 13, 0, 0, DateTimeKind.Local);
-            var engine = new Engine().SetValue("localDate", date);
-            engine.Execute(@"localDate");
-            var actual = engine.GetCompletionValue().AsDate().ToDateTime();
-            Assert.Equal(date.ToUniversalTime(), actual.ToUniversalTime());
-            Assert.Equal(date.ToLocalTime(), actual.ToLocalTime());
-        }
-
-        [Fact]
         public void UtcShouldUseUtc()
         {
+#if DNXCORE50
+            var customTimeZone = TimeZoneInfo.GetSystemTimeZones().First();
+#else
             const string customName = "Custom Time";
             var customTimeZone = TimeZoneInfo.CreateCustomTimeZone(customName, new TimeSpan(7, 11, 0), customName, customName, customName, null, false);
+#endif
             var engine = new Engine(cfg => cfg.LocalTimeZone(customTimeZone));
-
             var result = engine.Execute("Date.UTC(1970,0,1)").GetCompletionValue().AsNumber();
             Assert.Equal(0, result);
         }
@@ -975,22 +973,26 @@ namespace Jint.Tests.Runtime
         [Fact]
         public void ShouldUseLocalTimeZoneOverride()
         {
+#if DNXCORE50
+            var customTimeZone = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(3, 30, 0));
+#else
             const string customName = "Custom Time";
             var customTimeZone = TimeZoneInfo.CreateCustomTimeZone(customName, new TimeSpan(0, 11, 0), customName, customName, customName, null, false);
+#endif
 
             var engine = new Engine(cfg => cfg.LocalTimeZone(customTimeZone));
 
             var epochGetLocalMinutes = engine.Execute("var d = new Date(0); d.getMinutes();").GetCompletionValue().AsNumber();
-            Assert.Equal(11, epochGetLocalMinutes);
+            Assert.Equal(30, epochGetLocalMinutes);
 
             var localEpochGetUtcMinutes = engine.Execute("var d = new Date(1970,0,1); d.getUTCMinutes();").GetCompletionValue().AsNumber();
-            Assert.Equal(-11, localEpochGetUtcMinutes);
+            Assert.Equal(-30, localEpochGetUtcMinutes);
 
             var parseLocalEpoch = engine.Execute("Date.parse('January 1, 1970');").GetCompletionValue().AsNumber();
-            Assert.Equal(-11 * 60 * 1000, parseLocalEpoch);
+            Assert.Equal(-30 * 7 * 60 * 1000, parseLocalEpoch);
 
             var epochToLocalString = engine.Execute("var d = new Date(0); d.toString();").GetCompletionValue().AsString();
-            Assert.Equal("Thu Jan 01 1970 00:11:00 GMT+00:11", epochToLocalString);
+            Assert.Equal("Thu Jan 01 1970 03:30:00 GMT+03:30", epochToLocalString);
 
             var epochToUTCString = engine.Execute("var d = new Date(0); d.toUTCString();").GetCompletionValue().AsString();
             Assert.Equal("Thu Jan 01 1970 00:00:00 GMT", epochToUTCString);
@@ -1018,8 +1020,14 @@ namespace Jint.Tests.Runtime
         [InlineData("1970-01-01T00:00:00.000-00:00")]
         public void ShouldParseAsUtc(string date)
         {
+#if DNXCORE50
+            var customTimeZone = TimeZoneInfo.GetSystemTimeZones().First();
+
+#else
             const string customName = "Custom Time";
             var customTimeZone = TimeZoneInfo.CreateCustomTimeZone(customName, new TimeSpan(7, 11, 0), customName, customName, customName, null, false);
+#endif
+
             var engine = new Engine(cfg => cfg.LocalTimeZone(customTimeZone));
 
             engine.SetValue("d", date);
@@ -1044,16 +1052,23 @@ namespace Jint.Tests.Runtime
         [InlineData("01-1970")]
         [InlineData("01-01-1970")]
         [InlineData("January 1, 1970")]
+#if !DNXCORE50
         [InlineData("1970-01-01T00:00:00.000+00:11")]
+#endif
         public void ShouldParseAsLocalTime(string date)
         {
+#if DNXCORE50
+            var customTimeZone = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(3, 30, 0));
+#else
             const string customName = "Custom Time";
             var customTimeZone = TimeZoneInfo.CreateCustomTimeZone(customName, new TimeSpan(0, 11, 0), customName, customName, customName, null, false);
+#endif
+
             var engine = new Engine(cfg => cfg.LocalTimeZone(customTimeZone)).SetValue("d", date);
 
             var result = engine.Execute("Date.parse(d);").GetCompletionValue().AsNumber();
 
-            Assert.Equal(-11 * 60 * 1000, result);
+            Assert.Equal(-30 * 7 * 60 * 1000, result);
         }
 
         [Fact]
@@ -1069,7 +1084,7 @@ namespace Jint.Tests.Runtime
         public void ShouldExecuteHandlebars()
         {
             var url = "http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.js";
-            var content = new WebClient().DownloadString(url);
+            var content = new HttpClient().GetStringAsync(url).Result;
 
             RunTest(content);
 
@@ -1259,7 +1274,7 @@ namespace Jint.Tests.Runtime
             var engine = new Engine(options => options.DebugMode());
 
             engine.Step += EngineStep;
-            
+
             engine.Execute(@"var local = true;
                 var creatingSomeOtherLine = 0;
                 var lastOneIPromise = true");
@@ -1287,7 +1302,7 @@ namespace Jint.Tests.Runtime
 
             Assert.Equal(1, countBreak);
         }
-        
+
         private StepMode EngineStep(object sender, DebugInformation debugInfo)
         {
             Assert.NotNull(sender);
@@ -1337,7 +1352,7 @@ namespace Jint.Tests.Runtime
             Assert.Contains(debugInfo.Globals, kvp => kvp.Key.Equals("local", StringComparison.Ordinal) && kvp.Value.AsBoolean() == false);
             Assert.Contains(debugInfo.Locals, kvp => kvp.Key.Equals("local", StringComparison.Ordinal) && kvp.Value.AsBoolean() == false);
             Assert.DoesNotContain(debugInfo.Locals, kvp => kvp.Key.Equals("global", StringComparison.Ordinal));
-            
+
             countBreak++;
             return stepMode;
         }
@@ -1395,7 +1410,7 @@ namespace Jint.Tests.Runtime
         public void ShouldNotStepInIfRequiredToStepOut()
         {
             countBreak = 0;
-            
+
             var engine = new Engine(options => options.DebugMode());
 
             engine.Step += EngineStepOutWhenInsideFunction;
@@ -1422,7 +1437,7 @@ namespace Jint.Tests.Runtime
             countBreak++;
             if (debugInfo.CallStack.Count > 0)
                 return StepMode.Out;
-            
+
             return StepMode.Into;
         }
 
@@ -1453,7 +1468,7 @@ namespace Jint.Tests.Runtime
         public void ShouldNotStepInsideIfRequiredToStepOver()
         {
             countBreak = 0;
-            
+
             var engine = new Engine(options => options.DebugMode());
 
             stepMode = StepMode.Over;
@@ -1554,8 +1569,14 @@ namespace Jint.Tests.Runtime
         public void DateToStringMethodsShouldUseCurrentTimeZoneAndCulture()
         {
             // Forcing to PDT and FR for tests
+
+#if DNXCORE50
+            var PDT = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(-7, 0, 0));
+            var FR = new CultureInfo("fr-FR");
+#else
             var PDT = TimeZoneInfo.CreateCustomTimeZone("Pacific Daylight Time", new TimeSpan(-7, 0, 0), "Pacific Daylight Time", "Pacific Daylight Time");
             var FR = CultureInfo.GetCultureInfo("fr-FR");
+#endif
 
             var engine = new Engine(options => options.LocalTimeZone(PDT).Culture(FR))
                 .SetValue("log", new Action<object>(Console.WriteLine))
@@ -1579,8 +1600,13 @@ namespace Jint.Tests.Runtime
         public void DateShouldParseToString()
         {
             // Forcing to PDT and FR for tests
+#if DNXCORE50
+            var PDT = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(-7, 0, 0));
+            var FR = new CultureInfo("fr-FR");
+#else
             var PDT = TimeZoneInfo.CreateCustomTimeZone("Pacific Daylight Time", new TimeSpan(-7, 0, 0), "Pacific Daylight Time", "Pacific Daylight Time");
             var FR = CultureInfo.GetCultureInfo("fr-FR");
+#endif
 
             new Engine(options => options.LocalTimeZone(PDT).Culture(FR))
                 .SetValue("log", new Action<object>(Console.WriteLine))
@@ -1597,8 +1623,13 @@ namespace Jint.Tests.Runtime
         public void LocaleNumberShouldUseLocalCulture()
         {
             // Forcing to PDT and FR for tests
+#if DNXCORE50
+            var PDT = TimeZoneInfo.GetSystemTimeZones().First(info => info.BaseUtcOffset == new TimeSpan(-7, 0, 0));
+            var FR = new CultureInfo("fr-FR");
+#else
             var PDT = TimeZoneInfo.CreateCustomTimeZone("Pacific Daylight Time", new TimeSpan(-7, 0, 0), "Pacific Daylight Time", "Pacific Daylight Time");
             var FR = CultureInfo.GetCultureInfo("fr-FR");
+#endif
 
             new Engine(options => options.LocalTimeZone(PDT).Culture(FR))
                 .SetValue("log", new Action<object>(Console.WriteLine))
@@ -1608,16 +1639,6 @@ namespace Jint.Tests.Runtime
                     var d = new Number(-1.23);
                     equal('-1.23', d.toString());
                     equal('-1,23', d.toLocaleString());
-            ");
-        }
-
-        [Fact]
-        public void DateCtorShouldAcceptDate()
-        {
-            RunTest(@"
-                var a = new Date();
-                var b = new Date(a);
-                assert(String(a) === String(b));
             ");
         }
     }

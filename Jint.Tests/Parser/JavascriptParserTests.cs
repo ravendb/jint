@@ -26,7 +26,7 @@ namespace Jint.Tests.Parser
         {
             const string prefix = "Jint.Tests.Parser.Scripts.";
 
-            var assembly = Assembly.GetExecutingAssembly();
+            var assembly = typeof(JavascriptParserTests).Assembly();
             var scriptPath = prefix + file;
             var sw = new Stopwatch();
 
