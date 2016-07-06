@@ -4,10 +4,18 @@
 
   "buildOptions": {
     "compile": [ "**/*.cs" ],
-    "define": [ ]
+    "define": []
   },
 
   "testRunner": "xunit",
+
+  "configurations": {
+    "Release": {
+      "buildOptions": {
+        "optimize": true
+      }
+    }
+  },
 
   "dependencies": {
     "Jint": "2.8.1"
@@ -20,14 +28,13 @@
       },
       "dependencies": {
         "xunit": "2.1.0",
-        "dotnet-test-xunit": "1.0.0-rc2-181531-19",
+        "dotnet-test-xunit": "2.2.0-preview2-build1029",
 
-        "Microsoft.CSharp": "4.0.1-rc2-*",
-        "NETStandard.Library": "1.5.0-rc2-*",
+        "Microsoft.CSharp": "4.0.1",
 
         "Microsoft.NETCore.App": {
           "type": "platform",
-          "version": "1.0.0-rc2-*"
+          "version": "1.0.0"
         }
       },
       "imports": [

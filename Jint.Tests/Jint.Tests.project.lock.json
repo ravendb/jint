@@ -127,6 +127,7 @@
     "xunit/2.0.0": {
       "sha512": "R3ff9uIPUm5/ZxG0GzNzezftMwAtYYBKFZn/iVWPPvugq96WCaFt+ItC32cqIWpFsxkxChQAcWQSJOKazaGW+A==",
       "type": "package",
+      "path": "xunit/2.0.0",
       "files": [
         "xunit.2.0.0.nupkg.sha512",
         "xunit.nuspec"
@@ -147,6 +148,7 @@
     "xunit.assert/2.0.0": {
       "sha512": "zpAg9pQ+jzZqfMq8cgYMMYX2/QM0T2EoOR4xdrlMcGZ8Ev1B/+OfHmgEN2yjOE9NFuZm0hN/fBDvrbqdDXFFtA==",
       "type": "package",
+      "path": "xunit.assert/2.0.0",
       "files": [
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.assert.dll",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.assert.pdb",
@@ -158,6 +160,7 @@
     "xunit.core/2.0.0": {
       "sha512": "nL+V/XosvtydF8qwJWRjGQJEzwJpXcEw4AtYq+JtM7FIsLnolB+lG8iGS+N2V1Jo1FOnFj0Wtte6TAuTUtUh1g==",
       "type": "package",
+      "path": "xunit.core/2.0.0",
       "files": [
         "build/Xamarin.iOS/xunit.core.props",
         "build/Xamarin.iOS/xunit.execution.iOS-Universal.dll",
@@ -184,6 +187,7 @@
     "xunit.extensibility.core/2.0.0": {
       "sha512": "QDmEvruvqIfnzraEjPq0tcDBEhrLuSbkLY38xFnrv+H2Q6kHULq1l2nyj5W/xrY2Om3wmkaSs4FMaDXPmK7QCA==",
       "type": "package",
+      "path": "xunit.extensibility.core/2.0.0",
       "files": [
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.core.dll",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.core.dll.tdnet",
@@ -198,6 +202,7 @@
     "xunit.runner.visualstudio/2.0.0": {
       "sha512": "UxgPEwGL89Uw4bZSgCh7qIclAimiN8RttoLzBKgZuuYgJtZXgcRkwst4VbKo9FNVY7/n+LrhPZGmiXBI6qaFvw==",
       "type": "package",
+      "path": "xunit.runner.visualstudio/2.0.0",
       "files": [
         "build/_common/xunit.abstractions.dll",
         "build/_common/xunit.runner.utility.desktop.dll",

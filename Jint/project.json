@@ -4,20 +4,28 @@
 
   "buildOptions": {
     "compile": [ "**/*.cs" ],
-    "define": [ ],
+    "define": [],
     "keyFile": "Jint.snk"
   },
 
+  "configurations": {
+    "Release": {
+      "buildOptions": {
+        "optimize": true
+      }
+    }
+  },
+
   "frameworks": {
-    "netstandard1.5": {
+    "netstandard1.6": {
       "buildOptions": {
         "define": [ "DNXCORE50" ]
       },
       "dependencies": {
-        "Microsoft.CSharp": "4.0.1-rc2-*",
-        "NETStandard.Library": "1.5.0-rc2-*",
-        "System.Diagnostics.Contracts": "4.0.1-rc2-*",
-        "System.Reflection.TypeExtensions": "4.1.0-rc2-*"
+        "Microsoft.CSharp": "4.0.1",
+        "NETStandard.Library": "1.6.0",
+        "System.Diagnostics.Contracts": "4.0.1",
+        "System.Reflection.TypeExtensions": "4.1.0"
       }
     }
   }
