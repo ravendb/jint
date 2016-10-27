@@ -2151,5 +2151,16 @@ namespace Jint.Tests.Runtime
 
             Assert.Equal(expected, result);
         }
+
+		[Fact]
+        public void ShouldUseReplaceMarkers()
+        {
+            RunTest(@"
+                var re = /a/g;
+                var str = 'abab';
+                var newstr = str.replace(re, '$\'x');
+                equal('babxbbxb', newstr);
+            ");
+        }
     }
 }
