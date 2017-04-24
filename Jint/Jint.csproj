@@ -20,7 +20,10 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/sebastienros/jint</RepositoryUrl>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
-    <Version>2.10.99</Version>
+    <Version>2.10.100</Version>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <AssemblyVersion>2.10.100.0</AssemblyVersion>
+    <FileVersion>2.10.100.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
