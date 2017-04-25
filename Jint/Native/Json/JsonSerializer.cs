@@ -48,7 +48,7 @@ namespace Jint.Native.Json
                         _propertyList = new List<string>();
                     }
 
-                    foreach (var property in replacerObj.Properties.Values)
+                    foreach (var property in replacerObj.GetOwnProperties().Select(x => x.Value))
                     {
                         JsValue v = _engine.GetValue(property);
                         string item = null;
@@ -212,47 +212,47 @@ namespace Jint.Native.Json
 
         private string Quote(string value)
         {
-            var product = "\"";
+            var sb = new System.Text.StringBuilder("\"");
 
             foreach (char c in value)
             {
                 switch (c)
                 {
                     case '\"':
-                        product += "\\\"";
+                        sb.Append("\\\"");
                         break;
                     case '\\':
-                        product += "\\\\";
+                        sb.Append("\\\\");
                         break;
                     case '\b':
-                        product += "\\b";
+                        sb.Append("\\b");
                         break;
                     case '\f':
-                        product += "\\f";
+                        sb.Append("\\f");
                         break;
                     case '\n':
-                        product += "\\n";
+                        sb.Append("\\n");
                         break;
                     case '\r':
-                        product += "\\r";
+                        sb.Append("\\r");
                         break;
                     case '\t':
-                        product += "\\t";
+                        sb.Append("\\t");
                         break;
                     default:
                         if (c < 0x20)
                         {
-                            product += "\\u";
-                            product += ((int) c).ToString("x4");
+                            sb.Append("\\u");
+                            sb.Append(((int) c).ToString("x4"));
                         }
                         else
-                            product += c;
+                            sb.Append(c);
                         break;
                 }
             }
 
-            product += "\"";
-            return product;
+            sb.Append("\"");
+            return sb.ToString();
         }
 
         private string SerializeArray(ArrayInstance value)
@@ -316,7 +316,7 @@ namespace Jint.Native.Json
             var stepback = _indent;
             _indent += _gap;
             
-            var k = _propertyList ?? value.Properties
+            var k = _propertyList ?? value.GetOwnProperties()
                 .Where(x => x.Value.Enumerable.HasValue && x.Value.Enumerable.Value == true)
                 .Select(x => x.Key)
                 .ToList();

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using Jint.Native.Object;
+using Jint.Native.String;
 using Jint.Runtime;
 using Jint.Runtime.Interop;
 
@@ -66,7 +67,7 @@ namespace Jint.Native.Global
         public static JsValue ParseInt(JsValue thisObject, JsValue[] arguments)
         {
             string inputString = TypeConverter.ToString(arguments.At(0));
-            var s = inputString.Trim();
+            var s = StringPrototype.TrimEx(inputString);
 
             var sign = 1;
             if (!System.String.IsNullOrEmpty(s))
@@ -167,7 +168,7 @@ namespace Jint.Native.Global
         public static JsValue ParseFloat(JsValue thisObject, JsValue[] arguments)
         {
             var inputString = TypeConverter.ToString(arguments.At(0));
-            var trimmedString = inputString.TrimStart();
+            var trimmedString = StringPrototype.TrimStartEx(inputString);
 
             var sign = 1;
             if (trimmedString.Length > 0 )
@@ -317,7 +318,7 @@ namespace Jint.Native.Global
         /// </summary>
         public static JsValue IsNaN(JsValue thisObject, JsValue[] arguments)
         {
-            var x = TypeConverter.ToNumber(arguments[0]);
+            var x = TypeConverter.ToNumber(arguments.At(0));
             return double.IsNaN(x);
         }
 
@@ -331,7 +332,7 @@ namespace Jint.Native.Global
                 return false;
             }
 
-            var n = TypeConverter.ToNumber(arguments[0]);
+            var n = TypeConverter.ToNumber(arguments.At(0));
             if (double.IsNaN(n) || double.IsInfinity(n))
             {
                 return false;

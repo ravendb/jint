@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Dynamic;
+using System.Reflection;
+using System.Threading;
 using Jint.Native.Array;
 using Jint.Native.Boolean;
 using Jint.Native.Date;
@@ -14,34 +15,27 @@ using Jint.Native.RegExp;
 using Jint.Native.String;
 using Jint.Runtime;
 using Jint.Runtime.Interop;
-using System.Runtime.InteropServices;
 
 namespace Jint.Native
 {
-    [StructLayout(LayoutKind.Explicit)]
     [DebuggerTypeProxy(typeof(JsValueDebugView))]
-    public struct JsValue : IEquatable<JsValue>
+    public class JsValue : IEquatable<JsValue>
     {
-        public static JsValue Undefined = new JsValue(Types.Undefined);
-        public static JsValue Null = new JsValue(Types.Null);
-        public static JsValue False = new JsValue(false);
-        public static JsValue True = new JsValue(true);
+        public readonly static JsValue Undefined = new JsValue(Types.Undefined);
+        public readonly static JsValue Null = new JsValue(Types.Null);
+        public readonly static JsValue False = new JsValue(false);
+        public readonly static JsValue True = new JsValue(true);
 
         public JsValue(bool value)
         {
-            _double = double.NaN;
+            _double = value ? 1.0 : 0.0;
             _object = null;
-            _string = null;
             _type = Types.Boolean;
-
-            _bool = value; //Set value last because of 'FieldOffset' constraints
         }
 
         public JsValue(double value)
         {
-            _bool = false;
             _object = null;
-            _string = null;
             _type = Types.Number;
 
             _double = value;
@@ -49,19 +43,14 @@ namespace Jint.Native
 
         public JsValue(string value)
         {
-            _bool = false;
             _double = double.NaN;
-            _object = null;
+            _object = value;
             _type = Types.String;
-
-            _string = value;
         }
 
         public JsValue(ObjectInstance value)
         {
-            _bool = false;
             _double = double.NaN;
-            _string = null;
             _type = Types.Object;
 
             _object = value;
@@ -69,26 +58,15 @@ namespace Jint.Native
 
         private JsValue(Types type)
         {
-            _bool = false;
             _double = double.NaN;
             _object = null;
-            _string = null;
             _type = type;
         }
 
-        [FieldOffset(0)]
-        private readonly bool _bool;
-
-        [FieldOffset(0)]
         private readonly double _double;
 
-        [FieldOffset(8)]
-        private readonly ObjectInstance _object;
+        private readonly object _object;
 
-        [FieldOffset(8)]
-        private readonly string _string;
-
-        [FieldOffset(16)]
         private readonly Types _type;
 
         [Pure]
@@ -110,17 +88,23 @@ namespace Jint.Native
         }
 
         [Pure]
+        public bool IsDate()
+        {
+            return IsObject() && AsObject() is DateInstance;
+        }
+
+        [Pure]
         public bool IsRegExp()
         {
             return IsObject() && AsObject() is RegExpInstance;
         }
-        
+
         [Pure]
         public bool IsObject()
         {
             return _type == Types.Object;
         }
-        
+
         [Pure]
         public bool IsString()
         {
@@ -153,7 +137,7 @@ namespace Jint.Native
                 throw new ArgumentException("The value is not an object");
             }
 
-            return _object;
+            return _object as ObjectInstance;
         }
 
         [Pure]
@@ -163,11 +147,34 @@ namespace Jint.Native
             {
                 throw new ArgumentException("The value is not an array");
             }
-            return AsObject() as ArrayInstance;            
+
+            return _object as ArrayInstance;
         }
 
         [Pure]
-        public T TryCast<T>(Action<JsValue> fail = null) where T: class
+        public DateInstance AsDate()
+        {
+            if (!IsDate())
+            {
+                throw new ArgumentException("The value is not a date");
+            }
+
+            return _object as DateInstance;
+        }
+
+        [Pure]
+        public RegExpInstance AsRegExp()
+        {
+            if (!IsRegExp())
+            {
+                throw new ArgumentException("The value is not a date");
+            }
+
+            return _object as RegExpInstance;
+        }
+
+        [Pure]
+        public T TryCast<T>(Action<JsValue> fail = null) where T : class
         {
             if (IsObject())
             {
@@ -196,7 +203,7 @@ namespace Jint.Native
         {
             return _object as T;
         }
-        
+
         [Pure]
         public bool AsBoolean()
         {
@@ -205,7 +212,7 @@ namespace Jint.Native
                 throw new ArgumentException("The value is not a boolean");
             }
 
-            return _bool;
+            return _double != 0;
         }
 
         [Pure]
@@ -216,12 +223,12 @@ namespace Jint.Native
                 throw new ArgumentException("The value is not a string");
             }
 
-            if (_string == null)
+            if (_object == null)
             {
                 throw new ArgumentException("The value is not defined");
             }
 
-            return _string;
+            return _object as string;
         }
 
         [Pure]
@@ -237,6 +244,16 @@ namespace Jint.Native
 
         public bool Equals(JsValue other)
         {
+            if (other == null)
+            {
+                return false;
+            }
+
+            if(ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             if (_type != other._type)
             {
                 return false;
@@ -251,11 +268,9 @@ namespace Jint.Native
                 case Types.Null:
                     return true;
                 case Types.Boolean:
-                    return _bool == other._bool;
-                case Types.String:
-                    return _string == other._string;
                 case Types.Number:
                     return _double == other._double;
+                case Types.String:
                 case Types.Object:
                     return _object == other._object;
                 default:
@@ -281,7 +296,7 @@ namespace Jint.Native
                 return Null;
             }
 
-            foreach(var converter in engine.Options.GetObjectConverters())
+            foreach (var converter in engine.Options._ObjectConverters)
             {
                 JsValue result;
                 if (converter.TryConvert(value, out result))
@@ -290,83 +305,51 @@ namespace Jint.Native
                 }
             }
 
-            var typeCode = System.Type.GetTypeCode(value.GetType());
-            switch (typeCode)
-            {
-                case TypeCode.Boolean:
-                    return new JsValue((bool)value);
-                case TypeCode.Byte:
-                    return new JsValue((byte)value);
-                case TypeCode.Char:
-                    return new JsValue(value.ToString());
-                case TypeCode.DateTime:
-                    return engine.Date.Construct((DateTime)value);
-                case TypeCode.Decimal:
-                    return new JsValue((double)(decimal)value);
-                case TypeCode.Double:
-                    return new JsValue((double)value);
-                case TypeCode.Int16:
-                    return new JsValue((Int16)value);
-                case TypeCode.Int32:
-                    return new JsValue((Int32)value);
-                case TypeCode.Int64:
-                    return new JsValue((Int64)value);
-                case TypeCode.SByte:
-                    return new JsValue((SByte)value);
-                case TypeCode.Single:
-                    return new JsValue((Single)value);
-                case TypeCode.String:
-                    return new JsValue((string)value);
-                case TypeCode.UInt16:
-                    return new JsValue((UInt16)value);
-                case TypeCode.UInt32:
-                    return new JsValue((UInt32)value);
-                case TypeCode.UInt64:
-                    return new JsValue((UInt64)value);
-                case TypeCode.Object:
-                    break;
-                case TypeCode.Empty:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            var valueType = value.GetType();
 
-            if (value is DateTimeOffset)
+            var typeMappers = Engine.TypeMappers;
+
+            Func<Engine, object, JsValue> typeMapper;
+            if (typeMappers.TryGetValue(valueType, out typeMapper))
             {
-                    return engine.Date.Construct((DateTimeOffset)value);
+                return typeMapper(engine, value);
             }
 
             // if an ObjectInstance is passed directly, use it as is
             var instance = value as ObjectInstance;
             if (instance != null)
             {
+                // Learn conversion.
+                // Learn conversion, racy, worst case we'll try again later
+                Interlocked.CompareExchange(ref Engine.TypeMappers, new Dictionary<Type, Func<Engine, object, JsValue>>(typeMappers)
+                {
+                    [valueType] = (Engine e, object v) => new JsValue((ObjectInstance)v)
+                }, typeMappers);
                 return new JsValue(instance);
             }
 
-            // if a JsValue is passed directly, use it as is
-            if (value is JsValue)
+            var a = value as System.Array;
+            if (a != null)
             {
-                return (JsValue) value;
-            }
-
-            var array = value as System.Array;
-            if (array != null)
-            {
-                var jsArray = engine.Array.Construct(Arguments.Empty);
-                foreach (var item in array)
+                Func<Engine, object, JsValue> convert = (Engine e, object v) =>
                 {
-                    var jsItem = FromObject(engine, item);
-                    engine.Array.PrototypeObject.Push(jsArray, Arguments.From(jsItem));
-                }
+                    var array = (System.Array)v;
 
-                return jsArray;
-            }
+                    var jsArray = engine.Array.Construct(Arguments.Empty);
+                    foreach (var item in array)
+                    {
+                        var jsItem = JsValue.FromObject(engine, item);
+                        engine.Array.PrototypeObject.Push(jsArray, Arguments.From(jsItem));
+                    }
 
-            var regex = value as System.Text.RegularExpressions.Regex;
-            if (regex != null)
-            {
-                var jsRegex = engine.RegExp.Construct(regex.ToString().Trim('/'));
-                return jsRegex;
+                    return jsArray;
+                };
+                // racy, we don't care, worst case we'll catch up later
+                Interlocked.CompareExchange(ref Engine.TypeMappers, new Dictionary<Type, Func<Engine, object, JsValue>>(typeMappers)
+                {
+                    [valueType] = convert
+                }, typeMappers);
+                return convert(engine, a);
             }
 
             var d = value as Delegate;
@@ -375,7 +358,7 @@ namespace Jint.Native
                 return new DelegateWrapper(engine, d);
             }
 
-            if (value.GetType().IsEnum)
+            if (value.GetType().IsEnum())
             {
                 return new JsValue((Int32)value);
             }
@@ -396,10 +379,10 @@ namespace Jint.Native
                 case Types.Undefined:
                 case Types.Null:
                     return null;
-                case Types.Boolean:
-                    return _bool;
                 case Types.String:
-                    return _string;
+                    return _object;
+                case Types.Boolean:
+                    return _double != 0;
                 case Types.Number:
                     return _double;
                 case Types.Object:
@@ -409,7 +392,7 @@ namespace Jint.Native
                         return wrapper.Target;
                     }
 
-                    switch (_object.Class)
+                    switch ((_object as ObjectInstance).Class)
                     {
                         case "Array":
                             var arrayInstance = _object as ArrayInstance;
@@ -434,7 +417,7 @@ namespace Jint.Native
                                 return result;
                             }
                             break;
-                        
+
                         case "String":
                             var stringInstance = _object as StringInstance;
                             if (stringInstance != null)
@@ -466,10 +449,10 @@ namespace Jint.Native
                             var function = _object as FunctionInstance;
                             if (function != null)
                             {
-                                return (Func<JsValue, JsValue[], JsValue>) function.Call;
+                                return (Func<JsValue, JsValue[], JsValue>)function.Call;
                             }
 
-                            break; 
+                            break;
 
                         case "Number":
                             var numberInstance = _object as NumberInstance;
@@ -489,21 +472,22 @@ namespace Jint.Native
 
                             break;
 
+                        case "Arguments":
                         case "Object":
-                            #if __IOS__
-                                IDictionary<string, object> o = new Dictionary<string, object>(); 
-                            #else
-                                IDictionary<string, object> o = new ExpandoObject();
-                            #endif
-                            
-                            foreach (var p in _object.Properties)
+#if __IOS__
+                                IDictionary<string, object> o = new Dictionary<string, object>();
+#else
+                            IDictionary<string, object> o = new ExpandoObject();
+#endif
+
+                            foreach (var p in (_object as ObjectInstance).GetOwnProperties())
                             {
                                 if (!p.Value.Enumerable.HasValue || p.Value.Enumerable.Value == false)
                                 {
                                     continue;
                                 }
 
-                                o.Add(p.Key, _object.Get(p.Key).ToObject());
+                                o.Add(p.Key, (_object as ObjectInstance).Get(p.Key).ToObject());
                             }
 
                             return o;
@@ -555,11 +539,10 @@ namespace Jint.Native
                 case Types.Null:
                     return "null";
                 case Types.Boolean:
-                    return _bool.ToString();
-                case Types.String:
-                    return _string;
+                    return _double != 0 ? bool.TrueString : bool.FalseString;
                 case Types.Number:
                     return _double.ToString();
+                case Types.String:
                 case Types.Object:
                     return _object.ToString();
                 default:
@@ -569,11 +552,31 @@ namespace Jint.Native
 
         public static bool operator ==(JsValue a, JsValue b)
         {
+            if ((object)a == null)
+            {
+                if ((object)b == null)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
             return a.Equals(b);
         }
 
         public static bool operator !=(JsValue a, JsValue b)
         {
+            if ((object)a == null)
+            {
+                if ((object)b == null)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
             return !a.Equals(b);
         }
 
@@ -642,10 +645,9 @@ namespace Jint.Native
         {
             unchecked
             {
-                var hashCode = _bool.GetHashCode();
+                var hashCode = 0;
                 hashCode = (hashCode * 397) ^ _double.GetHashCode();
                 hashCode = (hashCode * 397) ^ (_object != null ? _object.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (_string != null ? _string.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (int)_type;
                 return hashCode;
             }

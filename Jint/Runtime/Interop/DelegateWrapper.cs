@@ -1,8 +1,10 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Jint.Native;
 using Jint.Native.Function;
+using System.Reflection;
 
 namespace Jint.Runtime.Interop
 {
@@ -17,21 +19,24 @@ namespace Jint.Runtime.Interop
         public DelegateWrapper(Engine engine, Delegate d) : base(engine, null, null, false)
         {
             _d = d;
+            Prototype = engine.Function.PrototypeObject;
         }
 
         public override JsValue Call(JsValue thisObject, JsValue[] jsArguments)
         {
-            var parameterInfos = _d.Method.GetParameters();
+            var parameterInfos = _d.GetMethodInfo().GetParameters();
 
-            bool delegateContainsParamsArgument = parameterInfos.Any(p => Attribute.IsDefined(p, typeof(ParamArrayAttribute)));
+            bool delegateContainsParamsArgument = parameterInfos.Any(p => p.HasAttribute<ParamArrayAttribute>());
             int delegateArgumentsCount = parameterInfos.Length;
             int delegateNonParamsArgumentsCount = delegateContainsParamsArgument ? delegateArgumentsCount - 1 : delegateArgumentsCount;
 
+            int jsArgumentsCount = jsArguments.Length;
+            int jsArgumentsWithoutParamsCount = Math.Min(jsArgumentsCount, delegateNonParamsArgumentsCount);
+
             var parameters = new object[delegateArgumentsCount];
 
-
             // convert non params parameter to expected types
-            for (var i = 0; i < delegateNonParamsArgumentsCount; i++)
+            for (var i = 0; i < jsArgumentsWithoutParamsCount; i++)
             {
                 var parameterType = parameterInfos[i].ParameterType;
 
@@ -49,9 +54,9 @@ namespace Jint.Runtime.Interop
             }
 
             // assign null to parameters not provided
-            for (var i = jsArguments.Length; i < delegateNonParamsArgumentsCount; i++)
+            for (var i = jsArgumentsWithoutParamsCount; i < delegateNonParamsArgumentsCount; i++)
             {
-                if (parameterInfos[i].ParameterType.IsValueType)
+                if (parameterInfos[i].ParameterType.IsValueType())
                 {
                     parameters[i] = Activator.CreateInstance(parameterInfos[i].ParameterType);
                 }
@@ -64,27 +69,39 @@ namespace Jint.Runtime.Interop
             // assign params to array and converts each objet to expected type
             if(delegateContainsParamsArgument)
             {
-                object[] paramsParameter = new object[jsArguments.Length - delegateNonParamsArgumentsCount];
-                var paramsParameterType = parameterInfos[delegateArgumentsCount -1].ParameterType.GetElementType();
+                int paramsArgumentIndex = delegateArgumentsCount - 1;
+                int paramsCount = Math.Max(0, jsArgumentsCount - delegateNonParamsArgumentsCount);
 
-                for (var i = delegateNonParamsArgumentsCount; i < jsArguments.Length; i++)
+                object[] paramsParameter = new object[paramsCount];
+                var paramsParameterType = parameterInfos[paramsArgumentIndex].ParameterType.GetElementType();
+
+                for (var i = paramsArgumentIndex; i < jsArgumentsCount; i++)
                 {
+                    var paramsIndex = i - paramsArgumentIndex;
+
                     if (paramsParameterType == typeof(JsValue))
                     {
-                        paramsParameter[i - delegateNonParamsArgumentsCount] = jsArguments[i];
+                        paramsParameter[paramsIndex] = jsArguments[i];
                     }
                     else
                     {
-                        paramsParameter[i - delegateNonParamsArgumentsCount] = Engine.ClrTypeConverter.Convert(
+                        paramsParameter[paramsIndex] = Engine.ClrTypeConverter.Convert(
                             jsArguments[i].ToObject(),
                             paramsParameterType,
                             CultureInfo.InvariantCulture);
-                    }                    
+                    }
                 }
-                parameters[delegateNonParamsArgumentsCount] = paramsParameter;
+                parameters[paramsArgumentIndex] = paramsParameter;
             }
-
-            return JsValue.FromObject(Engine, _d.DynamicInvoke(parameters));
+            try
+            {
+                return JsValue.FromObject(Engine, _d.DynamicInvoke(parameters));
+            }
+            catch (TargetInvocationException exception)
+            {
+                var meaningfulException = exception.InnerException ?? exception;
+                throw new JavaScriptException(Engine.Error, meaningfulException.Message);
+            }
         }
     }
 }

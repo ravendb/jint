@@ -14,11 +14,11 @@ namespace Jint.Benchmark
             if(o.Blah != 'bar42.0001') throw TypeError;
 
             function fib(n){
-                if(n<2) { 
-                    return n; 
+                if(n<2) {
+                    return n;
                 }
-    
-                return fib(n-1) + fib(n-2);  
+
+                return fib(n-1) + fib(n-2);
             }
 
             if(fib(3) != 2) throw TypeError;
@@ -26,7 +26,7 @@ namespace Jint.Benchmark
 
         static void Main()
         {
-            const bool runIronJs = true;
+            //const bool runIronJs = true;
             const bool runJint = true;
             const bool runJurassic = true;
 
@@ -36,24 +36,24 @@ namespace Jint.Benchmark
             var watch = new Stopwatch();
 
 
-            if (runIronJs)
-            {
-                IronJS.Hosting.CSharp.Context ironjs;
-                ironjs = new IronJS.Hosting.CSharp.Context();
-                ironjs.Execute(Script);
-                watch.Restart();
-                for (var i = 0; i < iterations; i++)
-                {
-                    if (!reuseEngine)
-                    {
-                        ironjs = new IronJS.Hosting.CSharp.Context();
-                    }
+            //if (runIronJs)
+            //{
+            //    IronJS.Hosting.CSharp.Context ironjs;
+            //    ironjs = new IronJS.Hosting.CSharp.Context();
+            //    ironjs.Execute(Script);
+            //    watch.Restart();
+            //    for (var i = 0; i < iterations; i++)
+            //    {
+            //        if (!reuseEngine)
+            //        {
+            //            ironjs = new IronJS.Hosting.CSharp.Context();
+            //        }
 
-                    ironjs.Execute(Script);
-                }
+            //        ironjs.Execute(Script);
+            //    }
 
-                Console.WriteLine("IronJs: {0} iterations in {1} ms", iterations, watch.ElapsedMilliseconds);
-            }
+            //    Console.WriteLine("IronJs: {0} iterations in {1} ms", iterations, watch.ElapsedMilliseconds);
+            //}
 
             if (runJint)
             {

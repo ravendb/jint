@@ -90,5 +90,19 @@ namespace Jint.Tests.Runtime.Domain
         {
 
         }
+        public string Call16(params JsValue[] values)
+        {
+            return String.Join(",", (System.Collections.Generic.IEnumerable<JsValue>)values);
+        }
+
+        public int Call17(Func<int, int> callback)
+        {
+            return callback(17);
+        }
+
+        public void Call18(Action<int> callback)
+        {
+            callback(18);
+        }
     }
 }
