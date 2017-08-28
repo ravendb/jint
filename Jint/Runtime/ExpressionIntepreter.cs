@@ -785,6 +785,27 @@ namespace Jint.Runtime
             return closure;
         }
 
+        public JsValue EvaluateArrowFunctionExpression(ArrowFunctionExpression arrowFunctionExpression)
+        {
+            if (arrowFunctionExpression.Expression)
+            {
+                var expression = arrowFunctionExpression.Body.As<Expression>();
+                var func = new FunctionExpression(new Identifier(null),
+                    arrowFunctionExpression.Params,
+                    new BlockStatement(new[] { new ReturnStatement(expression) }),
+                    false,
+                    new HoistingScope(),// TOOD: fix this
+                    StrictModeScope.IsStrictModeCode);
+
+                return EvaluateFunctionExpression(func);
+            }
+            var arrowFunc = new ClrFunctionInstance(_engine, (externalSelf, args) =>
+            {
+                return (JsValue)EvaluateExpression(arrowFunctionExpression.Body.As<Expression>());
+            });
+            return new JsValue(arrowFunc);
+        }
+
         public JsValue EvaluateCallExpression(CallExpression callExpression)
         {
             var callee = EvaluateExpression(callExpression.Callee);
