@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Jint.Native;
@@ -139,6 +140,36 @@ namespace Jint.Runtime.Interop
             }
 
             return PropertyDescriptor.Undefined;
+        }
+
+        bool _scannedProperties;
+
+        public override IEnumerable<KeyValuePair<string, PropertyDescriptor>> GetOwnProperties()
+        {
+            EnsureInitialized();
+
+            if (_scannedProperties == false)
+            {
+                _scannedProperties = true;
+
+                var type = Target.GetType();
+
+                // look for properties
+                foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                {
+                    var descriptor = new PropertyInfoDescriptor(Engine, property, Target);
+                    Properties[property.Name] = descriptor;
+                }
+
+                // look for fields
+                foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                {
+                    var descriptor = new FieldInfoDescriptor(Engine, field, Target);
+                    Properties[field.Name] = descriptor;
+                }
+            }
+
+            return Properties;
         }
 
         private bool EqualsIgnoreCasing(string s1, string s2)
