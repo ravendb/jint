@@ -53,6 +53,15 @@ namespace Jint.Runtime.Interop
 
         public override PropertyDescriptor GetOwnProperty(string propertyName)
         {
+            // Avoid modifying the GetOwnProperties enumeration while debugging
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                if (EqualsIgnoreCasing(propertyName, nameof(ToString)))
+                {
+                    return PropertyDescriptor.Undefined;
+                }
+            }
+
             PropertyDescriptor x;
             if (Properties.TryGetValue(propertyName, out x))
                 return x;
