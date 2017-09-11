@@ -4,7 +4,7 @@
     <PackageId>Jint</PackageId>
     <AssemblyTitle>Jint</AssemblyTitle>
     <Description>Javascript interpreter for .NET which provides full ECMA 5.1 compliance.</Description>
-    <VersionPrefix>3.0.3-ravendb</VersionPrefix>
+    <VersionPrefix>3.0.4-ravendb</VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <PackageId>Jint</PackageId>
     <PackageTags>javascript, interpreter</PackageTags>

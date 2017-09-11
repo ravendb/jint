@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -53,6 +54,15 @@ namespace Jint.Runtime.Interop
 
         public override PropertyDescriptor GetOwnProperty(string propertyName)
         {
+            // Avoid modifying the GetOwnProperties enumeration while debugging
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                if (EqualsIgnoreCasing(propertyName, nameof(ToString)))
+                {
+                    return PropertyDescriptor.Undefined;
+                }
+            }
+
             PropertyDescriptor x;
             if (Properties.TryGetValue(propertyName, out x))
                 return x;
@@ -152,11 +162,24 @@ namespace Jint.Runtime.Interop
             {
                 _scannedProperties = true;
 
+                if (Target is IDictionary dictionary)
+                {
+                    foreach (DictionaryEntry entry in dictionary)
+                    {
+                        var jsValue = JsValue.FromObject(Engine, entry.Value);
+                        Properties[entry.Key.ToString()] = new PropertyDescriptor(jsValue, false, false, false);
+                    }
+                    return Properties;
+                }
+
                 var type = Target.GetType();
 
                 // look for properties
                 foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                 {
+                    if (property.CanRead == false)
+                        continue;
+
                     var descriptor = new PropertyInfoDescriptor(Engine, property, Target);
                     Properties[property.Name] = descriptor;
                 }
