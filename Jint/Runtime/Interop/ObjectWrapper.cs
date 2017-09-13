@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Jint.Native;
 using Jint.Native.Object;
 using Jint.Runtime.Descriptors;
@@ -68,6 +69,14 @@ namespace Jint.Runtime.Interop
                 return x;
 
             var type = Target.GetType();
+            if (Target is Task task &&
+                propertyName == nameof(Task<int>.Result) && 
+                task.IsCompleted == false)
+            {
+                var descriptor = GetRunningTaskResult(task);
+                Properties.Add(propertyName, descriptor);
+                return descriptor;
+            }
 
             // look for a property
             var property = type.GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public)
@@ -152,6 +161,16 @@ namespace Jint.Runtime.Interop
             return PropertyDescriptor.Undefined;
         }
 
+        private PropertyDescriptor GetRunningTaskResult(Task task)
+        {
+            var value = $"{{Ignoring Task.Result as task's status is {task.Status.ToString()}}}.";
+            if (task.IsFaulted)
+                value += Environment.NewLine + "Exception: " + task.Exception;
+            var jsValue = new JsValue(value);
+            var descriptor = new PropertyDescriptor(jsValue, false, false, false);
+            return descriptor;
+        }
+
         bool _scannedProperties;
 
         public override IEnumerable<KeyValuePair<string, PropertyDescriptor>> GetOwnProperties()
@@ -173,6 +192,25 @@ namespace Jint.Runtime.Interop
                 }
 
                 var type = Target.GetType();
+                if (Target is Task task &&
+                    task.IsCompleted == false)
+                {
+                    foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                    {
+                        if (property.CanRead == false)
+                            continue;
+
+                        if (property.Name == nameof(Task<int>.Result))
+                        {
+                            Properties.Add(property.Name, GetRunningTaskResult(task));
+                            continue;
+                        }
+
+                        var descriptor = new PropertyInfoDescriptor(Engine, property, Target);
+                        Properties[property.Name] = descriptor;
+                    }
+                    return Properties;
+                }
 
                 // look for properties
                 foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
