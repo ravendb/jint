@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Jint.Native;
 using Jint.Native.Object;
 using Jint.Runtime.Descriptors;
@@ -55,29 +52,11 @@ namespace Jint.Runtime.Interop
 
         public override PropertyDescriptor GetOwnProperty(string propertyName)
         {
-            // Avoid modifying the GetOwnProperties enumeration while debugging
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                if (EqualsIgnoreCasing(propertyName, nameof(ToString)))
-                {
-                    return PropertyDescriptor.Undefined;
-                }
-            }
-
             PropertyDescriptor x;
             if (Properties.TryGetValue(propertyName, out x))
                 return x;
 
             var type = Target.GetType();
-            if (Target is Task task &&
-                propertyName == nameof(Task<int>.Result) && 
-                task.IsCompleted == false)
-            {
-                var descriptor = GetRunningTaskResult(task);
-                Properties.Add(propertyName, descriptor);
-                return descriptor;
-            }
-
             // look for a property
             var property = type.GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public)
                 .Where(p => EqualsIgnoreCasing(p.Name, propertyName))
@@ -159,78 +138,6 @@ namespace Jint.Runtime.Interop
             }
 
             return PropertyDescriptor.Undefined;
-        }
-
-        private PropertyDescriptor GetRunningTaskResult(Task task)
-        {
-            var value = $"{{Ignoring Task.Result as task's status is {task.Status.ToString()}}}.";
-            if (task.IsFaulted)
-                value += Environment.NewLine + "Exception: " + task.Exception;
-            var jsValue = new JsValue(value);
-            var descriptor = new PropertyDescriptor(jsValue, false, false, false);
-            return descriptor;
-        }
-
-        bool _scannedProperties;
-
-        public override IEnumerable<KeyValuePair<string, PropertyDescriptor>> GetOwnProperties()
-        {
-            EnsureInitialized();
-
-            if (_scannedProperties == false)
-            {
-                _scannedProperties = true;
-
-                if (Target is IDictionary dictionary)
-                {
-                    foreach (DictionaryEntry entry in dictionary)
-                    {
-                        var jsValue = JsValue.FromObject(Engine, entry.Value);
-                        Properties[entry.Key.ToString()] = new PropertyDescriptor(jsValue, false, false, false);
-                    }
-                    return Properties;
-                }
-
-                var type = Target.GetType();
-                if (Target is Task task &&
-                    task.IsCompleted == false)
-                {
-                    foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
-                    {
-                        if (property.CanRead == false)
-                            continue;
-
-                        if (property.Name == nameof(Task<int>.Result))
-                        {
-                            Properties.Add(property.Name, GetRunningTaskResult(task));
-                            continue;
-                        }
-
-                        var descriptor = new PropertyInfoDescriptor(Engine, property, Target);
-                        Properties[property.Name] = descriptor;
-                    }
-                    return Properties;
-                }
-
-                // look for properties
-                foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
-                {
-                    if (property.CanRead == false)
-                        continue;
-
-                    var descriptor = new PropertyInfoDescriptor(Engine, property, Target);
-                    Properties[property.Name] = descriptor;
-                }
-
-                // look for fields
-                foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
-                {
-                    var descriptor = new FieldInfoDescriptor(Engine, field, Target);
-                    Properties[field.Name] = descriptor;
-                }
-            }
-
-            return Properties;
         }
 
         private bool EqualsIgnoreCasing(string s1, string s2)
