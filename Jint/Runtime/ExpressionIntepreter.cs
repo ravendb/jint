@@ -787,23 +787,18 @@ namespace Jint.Runtime
 
         public JsValue EvaluateArrowFunctionExpression(ArrowFunctionExpression arrowFunctionExpression)
         {
-            if (arrowFunctionExpression.Expression)
-            {
-                var expression = arrowFunctionExpression.Body.As<Expression>();
-                var func = new FunctionExpression(new Identifier(null),
-                    arrowFunctionExpression.Params,
-                    new BlockStatement(new[] { new ReturnStatement(expression) }),
-                    false,
-                    new HoistingScope(),// TOOD: fix this
-                    StrictModeScope.IsStrictModeCode);
+            var statement =
+                arrowFunctionExpression.Expression
+                    ? new BlockStatement(new[] {new ReturnStatement(arrowFunctionExpression.Body.As<Expression>()) })
+                    : arrowFunctionExpression.Body.As<BlockStatement>();
+            var func = new FunctionExpression(new Identifier(null),
+                arrowFunctionExpression.Params,
+                statement,
+                false,
+                new HoistingScope(),// TOOD: fix this
+                StrictModeScope.IsStrictModeCode);
 
-                return EvaluateFunctionExpression(func);
-            }
-            var arrowFunc = new ClrFunctionInstance(_engine, (externalSelf, args) =>
-            {
-                return (JsValue)EvaluateExpression(arrowFunctionExpression.Body.As<Expression>());
-            });
-            return new JsValue(arrowFunc);
+            return EvaluateFunctionExpression(func);
         }
 
         public JsValue EvaluateCallExpression(CallExpression callExpression)
