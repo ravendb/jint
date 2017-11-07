@@ -53,5 +53,22 @@ var a = input.reduce((a, v) => { return {a: a.a + v.a}; }, {a: 0} );
             var completionValue = engine.GetCompletionValue();
             Assert.Equal(15, completionValue.AsNumber());
         }
+
+        [Fact]
+        public void ArrowFunctionUseReduce3()
+        {
+            var engine = new Engine();
+
+            const string Script = @"
+var input = [{a: 1} , {a: 2}, {a: 3}, {a: 4}, {a: 5}];
+var a = input.reduce((a, v) => ({a: a.a + v.a}), {a: 0} );
+ a.a;
+";
+
+            engine.Execute(Script);
+
+            var completionValue = engine.GetCompletionValue();
+            Assert.Equal(15, completionValue.AsNumber());
+        }
     }
 }
