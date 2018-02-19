@@ -135,5 +135,7 @@ namespace Jint.Native.Function
         }
 
         public ObjectInstance PrototypeObject { get; private set; }
+
+        public IFunction GetFunctionDeclaration => _functionDeclaration;
     }
 }
