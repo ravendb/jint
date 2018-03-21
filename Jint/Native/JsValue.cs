@@ -342,11 +342,11 @@ namespace Jint.Native
                 {
                     var array = (System.Array)v;
 
-                    var jsArray = engine.Array.Construct(Arguments.Empty);
+                    var jsArray = e.Array.Construct(Arguments.Empty);
                     foreach (var item in array)
                     {
-                        var jsItem = JsValue.FromObject(engine, item);
-                        engine.Array.PrototypeObject.Push(jsArray, Arguments.From(jsItem));
+                        var jsItem = JsValue.FromObject(e, item);
+                        e.Array.PrototypeObject.Push(jsArray, Arguments.From(jsItem));
                     }
 
                     return jsArray;
