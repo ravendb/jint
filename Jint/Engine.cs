@@ -500,6 +500,9 @@ namespace Jint
                 case Nodes.UnaryExpression:
                     return _expressions.EvaluateUnaryExpression((UnaryExpression) expression);
 
+                case Nodes.ArrowFunctionExpression:
+                    return _expressions.EvaluateArrowFunctionExpression(expression.As<ArrowFunctionExpression>());
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
