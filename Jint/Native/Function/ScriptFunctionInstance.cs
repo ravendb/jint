@@ -299,5 +299,7 @@ namespace Jint.Native.Function
                 }
             }
         }
+
+        public IFunction GetFunctionDeclaration => _functionDeclaration;
     }
 }
