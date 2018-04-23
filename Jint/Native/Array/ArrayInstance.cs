@@ -18,7 +18,7 @@ namespace Jint.Native.Array
 
         internal PropertyDescriptor _length;
 
-        private const int MaxDenseArrayLength = 1024 * 10;
+        public const int MaxDenseArrayLength = 1024 * 10;
 
         // we have dense and sparse, we usually can start with dense and fall back to sparse when necessary
         private PropertyDescriptor[] _dense;
@@ -567,7 +567,7 @@ namespace Jint.Native.Array
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void WriteArrayValue(uint index, PropertyDescriptor desc)
+        public void WriteArrayValue(uint index, PropertyDescriptor desc)
         {
             // calculate eagerly so we know if we outgrow
             var newSize = _dense != null && index >= (uint) _dense.Length
