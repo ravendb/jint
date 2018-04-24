@@ -18,7 +18,7 @@ namespace Jint.Native.Array
 
         internal PropertyDescriptor _length;
 
-        public const int MaxDenseArrayLength = 1024 * 10;
+        private const int MaxDenseArrayLength = 1024 * 10;
 
         // we have dense and sparse, we usually can start with dense and fall back to sparse when necessary
         private PropertyDescriptor[] _dense;
