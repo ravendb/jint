@@ -5,7 +5,7 @@
     <AssemblyOriginatorKeyFile>Jint.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <LangVersion>latest</LangVersion>
-    <Version>3.0.10-ravendb</Version>
+    <Version>3.0.11-ravendb</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Esprima" Version="1.0.0-Raven-1" />
