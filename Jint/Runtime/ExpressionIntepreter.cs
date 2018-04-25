@@ -824,7 +824,7 @@ namespace Jint.Runtime
                 arrowFunctionExpression.Params,
                 statement,
                 false,
-                new HoistingScope(),// TOOD: fix this
+                arrowFunctionExpression.HoistingScope,// TOOD: fix this
                 StrictModeScope.IsStrictModeCode);
 
             return EvaluateFunctionExpression(func);
