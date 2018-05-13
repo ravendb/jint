@@ -38,6 +38,7 @@ namespace Jint.Runtime
         {
             Location = location;
             var sb = new StringBuilder();
+            var topOfCallStack = true;
             foreach (var cse in engine.CallStack)
             {
                 sb.Append(" at ")
@@ -63,6 +64,13 @@ namespace Jint.Runtime
                     .Append(":")
                     .Append(cse.CallExpression.Location.Start.Line)
                     .AppendLine();
+
+                if (topOfCallStack)
+                {
+                    topOfCallStack = false;
+                    Location = cse.CallExpression.Location;
+
+                }
             }
             CallStack = sb.ToString();
             return this;
