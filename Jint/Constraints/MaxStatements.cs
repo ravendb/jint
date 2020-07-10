@@ -2,12 +2,20 @@
 
 namespace Jint.Constraints
 {
-    internal sealed class MaxStatements : IConstraint
+    public sealed class MaxStatements : IConstraint
     {
-        private readonly int _maxStatements;
+        public int Max => _maxStatements;
+
+        private int _maxStatements;
+
         private int _statementsCount;
 
         public MaxStatements(int maxStatements)
+        {
+            Change(maxStatements);
+        }
+
+        public void Change(int maxStatements)
         {
             _maxStatements = maxStatements;
         }

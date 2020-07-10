@@ -201,6 +201,11 @@ namespace Jint
             Options.Apply(this);
         }
 
+        public T FindConstraint<T>() where T : class, IConstraint
+        {
+            return _constraints.Find(x => x is T) as T;
+        }
+
         internal LexicalEnvironment GlobalEnvironment { get; }
         public GlobalObject Global { get; }
         public ObjectConstructor Object { get; }
